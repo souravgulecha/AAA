@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta http-equiv="refresh" content="0; url=https://script.google.com/macros/s/AKfycbxeMhHR4Cvw4O0de3B-8jXOyu59iB5QzD8Z3akrlv3sXVfqBmZqaJzQWkfmaQY08aDe/exec">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
     <script>
-        window.location.href = "https://script.google.com/macros/s/AKfycbxeMhHR4Cvw4O0de3B-8jXOyu59iB5QzD8Z3akrlv3sXVfqBmZqaJzQWkfmaQY08aDe/exec";
+        setTimeout(() => {
+            window.open("https://script.google.com/macros/s/AKfycbxeMhHR4Cvw4O0de3B-8jXOyu59iB5QzD8Z3akrlv3sXVfqBmZqaJzQWkfmaQY08aDe/exec", "_self");
+        }, 100);  // Short delay to prevent download issue
     </script>
 </head>
 <body>
