@@ -4,13 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redirecting...</title>
-    <script>
-        setTimeout(() => {
-            window.open("https://script.google.com/macros/s/AKfycbxeMhHR4Cvw4O0de3B-8jXOyu59iB5QzD8Z3akrlv3sXVfqBmZqaJzQWkfmaQY08aDe/exec", "_self");
-        }, 100);  // Short delay to prevent download issue
-    </script>
 </head>
 <body>
-    <p>Redirecting... If not redirected, <a href="https://script.google.com/macros/s/AKfycbxeMhHR4Cvw4O0de3B-8jXOyu59iB5QzD8Z3akrlv3sXVfqBmZqaJzQWkfmaQY08aDe/exec">click here</a>.</p>
+    <iframe src="https://script.google.com/macros/s/AKfycbxeMhHR4Cvw4O0de3B-8jXOyu59iB5QzD8Z3akrlv3sXVfqBmZqaJzQWkfmaQY08aDe/exec" width="100%" height="100%" style="border:none;"></iframe>
 </body>
 </html>
