@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- Critical for mobile responsiveness, prevents unwanted zooming -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Employee Work Tracker | Secure Portal</title>
+    
+    <!-- Custom Favicon added here -->
+    <link rel="icon" type="image/png" href="https://souravgulecha.github.io/AAA/CA_logo.png">
+
+    <style>
+        /* CSS reset to ensure the iframe takes up the exact full screen */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden; /* Prevents double scrollbars */
+            background-color: #0f172a; /* Deep blue background matching your app's splash screen */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        .app-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+            /* Ensures iframe sits above the loading text once loaded */
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Loading fallback while iframe initializes or if network is slow */
+        .loading-fallback {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #f8fafc;
+            text-align: center;
+            z-index: 1; /* Hides behind the iframe once it loads */
+            width: 100%;
+        }
+
+        .loading-fallback h2 {
+            font-weight: 500;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #38bdf8;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="loading-fallback">
+        <div class="spinner"></div>
+        <h2>Connecting to Secure Workspace...</h2>
+        <p style="color: #94a3b8; font-size: 0.9rem;">Please ensure location services are enabled.</p>
+    </div>
+
+    <!-- 
+      INSTRUCTIONS: 
+      1. Deploy your Google Apps Script as a Web App (Execute as: Me, Who has access: Anyone).
+      2. Copy the resulting Web App URL.
+      3. Paste it inside the 'src' attribute below, replacing 'YOUR_GAS_WEB_APP_URL'.
+      4. Upload this file to your GitHub repository.
+    -->
+    <iframe 
+        class="app-iframe" 
+        src="https://script.google.com/macros/s/AKfycbwHI94HdNtZCzf9fol6SgzTSE3JXc56a4n8zFwEQiitDKt5HhcrsgcXPS48qsnPUIzd/exec" 
+        allow="geolocation; clipboard-write; clipboard-read"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
+        title="Employee Work Tracker Platform">
+    </iframe>
+
+</body>
+</html>
