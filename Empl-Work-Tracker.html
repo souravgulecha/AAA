@@ -622,7 +622,7 @@
         });
     }
 
-    // --- Admin Flow with Redirect ---
+    // --- Admin Flow with Redirect (UPDATED PATH) ---
     function showAdminLoginModal() {
       document.getElementById('adminLoginModal').style.display = 'flex';
       document.getElementById('adminPwdInput').value = '';
@@ -643,7 +643,7 @@
             if(res.success) {
                 SafeStorage.set('adminToken', res.adminToken);
                 closeAdminLoginModal();
-                // REDIRECT TO REPORT HTML ON GITHUB PAGES
+                // REDIRECT TO ADMIN DASHBOARD HTML ON GITHUB PAGES
                 window.location.href = 'Admin_Dashboard.html';
             } else {
                 document.getElementById('adminLoginError').textContent = res.message;
