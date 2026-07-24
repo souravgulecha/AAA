@@ -6,24 +6,12 @@
   <title>Employee Work Tracker | Arasu & Arunachalam LLP</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-  <link rel="icon" type="image/png" href="https://souravgulecha.github.io/AAA/CA_logo.png">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-
   <style>
     .splash-screen {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background-color: #0f172a; color: white; display: flex; justify-content: center; align-items: center;
       z-index: 10000;
-      animation: splashFade 2s ease-in-out forwards;
-      pointer-events: none;
-    }
-    @keyframes splashFade {
-      0% { opacity: 1; visibility: visible; } 
-      80% { opacity: 1; visibility: visible; } 
-      100% { opacity: 0; visibility: hidden; display: none; }
+      transition: opacity 0.5s ease-out;
     }
     .splash-content { text-align: center; }
     .splash-content h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
@@ -39,7 +27,6 @@
     }
     html { box-sizing: border-box; }
     *, *:before, *:after { box-sizing: inherit; }
-
     body { font-family: 'Inter', sans-serif; background: var(--background); color: var(--text-primary); margin: 0; padding: 0; line-height: 1.6; }
     
     .hidden { display: none !important; }
