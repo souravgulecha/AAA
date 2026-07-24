@@ -6,11 +6,12 @@
   <title>Employee Work Tracker | Arasu & Arunachalam LLP</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  
+
   <link rel="icon" type="image/png" href="https://souravgulecha.github.io/AAA/CA_logo.png">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
+
   <style>
     .splash-screen {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -1388,9 +1389,17 @@
     }
     function closeErrorModal() { document.getElementById('errorModal').style.display = "none"; }
 
-    window.addEventListener('load', () => {
-        initializeForm();
-        setupInactivityTracking();
+    document.addEventListener('DOMContentLoaded', () => {
+        try {
+            initializeForm();
+            setupInactivityTracking();
+        } catch (err) {
+            console.error("Initialization Error: ", err);
+            // Failsafe to guarantee the screen appears if browser blocks storage on load
+            showView('login-view');
+            const splash = document.getElementById('splash');
+            if(splash) splash.style.display = 'none';
+        }
     });
   </script>
 </body>
