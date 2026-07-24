@@ -69,12 +69,30 @@
         });
     }
 
-    // Upgraded to localStorage to prevent redirects from immediately breaking the session
+    // Triple-redundant storage to prevent strict browsers from losing the session
+    const MemoryStorage = {};
     const SafeStorage = {
-        get: (key) => { try { return localStorage.getItem(key); } catch(e) { return null; } },
-        set: (key, val) => { try { localStorage.setItem(key, val); } catch(e) {} },
-        remove: (key) => { try { localStorage.removeItem(key); } catch(e) {} },
-        clear: () => { try { localStorage.clear(); } catch(e) {} }
+        get: (key) => { 
+            let val = MemoryStorage[key];
+            if (!val) { try { val = localStorage.getItem(key); } catch(e) {} }
+            if (!val) { try { val = sessionStorage.getItem(key); } catch(e) {} }
+            return val || null;
+        },
+        set: (key, val) => { 
+            MemoryStorage[key] = val;
+            try { localStorage.setItem(key, val); } catch(e) {} 
+            try { sessionStorage.setItem(key, val); } catch(e) {}
+        },
+        remove: (key) => { 
+            delete MemoryStorage[key];
+            try { localStorage.removeItem(key); } catch(e) {} 
+            try { sessionStorage.removeItem(key); } catch(e) {}
+        },
+        clear: () => { 
+            for (let k in MemoryStorage) delete MemoryStorage[k];
+            try { localStorage.clear(); } catch(e) {} 
+            try { sessionStorage.clear(); } catch(e) {}
+        }
     };
   </script>
 
@@ -136,6 +154,7 @@
     .dashboard-container .emp-name { font-size: 0.95rem; font-weight: 600; color: var(--dash-text-main); }
     .dashboard-container .emp-meta { font-size: 0.75rem; color: var(--dash-text-muted); margin-top: 2px; }
     .dashboard-container .main-content { flex: 1; padding: 32px; overflow-y: auto; background-color: var(--dash-background); }
+    
     .dashboard-container .tabs { display: flex; gap: 10px; margin-bottom: 24px; border-bottom: 1px solid var(--dash-border); padding-bottom: 10px; overflow-x: auto; }
     .dashboard-container .tab-btn { background: none; border: none; padding: 10px 20px; font-weight: 600; color: var(--dash-text-muted); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
     .dashboard-container .tab-btn:hover { color: var(--dash-primary); }
@@ -161,6 +180,7 @@
     .dashboard-container .task-select-item:hover { border-color: var(--dash-secondary); box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
     .dashboard-container .task-select-item.selected { background-color: var(--dash-primary-light); border-color: var(--dash-primary); }
     .dashboard-container .task-checkbox { margin-top: 4px; width: 16px; height: 16px; cursor: pointer; accent-color: var(--dash-primary); }
+    
     .dashboard-container .kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 24px; }
     .dashboard-container .kpi-card { background: #fff; padding: 16px 10px; border-radius: 8px; border: 1px solid var(--dash-border); box-shadow: var(--dash-shadow); text-align: center; transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; justify-content: space-between; align-items: center; height: 100%; min-height: 90px; }
     .dashboard-container .kpi-card-clickable { cursor: pointer; border-color: #fca5a5; }
@@ -196,6 +216,7 @@
     .dashboard-container .progress-container { width: 100%; background-color: #e2e8f0; border-radius: 6px; overflow: hidden; height: 8px; }
     .dashboard-container .progress-bar { height: 100%; background-color: var(--dash-primary); width: 0%; transition: width 0.3s ease; }
     .dashboard-container .actions-bar { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; border-top: 1px solid var(--dash-border); padding-top: 20px; flex-wrap: wrap; }
+    
     .dashboard-container .dash-btn { padding: 10px 18px; border-radius: var(--dash-radius); font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; border: none; }
     .dashboard-container .btn-outline { background-color: var(--dash-surface); border: 1px solid var(--dash-border); color: var(--dash-text-main); }
     .dashboard-container .btn-outline:hover:not(:disabled) { border-color: var(--dash-primary); color: var(--dash-primary); background-color: var(--dash-primary-light); }
@@ -335,7 +356,6 @@
       <div class="layout">
           <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-          <!-- Modals specifically for Dashboard -->
           <div id="emailModalOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
               <div style="background:white; padding:24px; border-radius:8px; width:90%; max-width:400px; box-shadow:0 10px 25px rgba(0,0,0,0.2); animation: modalScale 0.3s ease;">
                   <h3 style="margin-top:0; color:var(--dash-text-main); display:flex; align-items:center; gap:8px;">
@@ -736,6 +756,16 @@
 
     // --- Authentication & Setup ---
     window.addEventListener('load', () => {
+        // Securely capture and save token from URL to bypass localStorage wipes
+        const urlParams = new URLSearchParams(window.location.search);
+        const tokenFromUrl = urlParams.get('token');
+        
+        if (tokenFromUrl) {
+            SafeStorage.set('adminToken', tokenFromUrl);
+            // Scrub the URL cleanly
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
         if (!SafeStorage.get('adminToken')) {
             window.location.href = 'Empl-Work-Tracker.html'; 
             return;
@@ -748,7 +778,6 @@
         window.location.href = 'Empl-Work-Tracker.html'; 
     }
     
-    // --- Tabs and Navigation ---
     function switchAdminTab(tab) {
         currentActiveTab = tab;
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
