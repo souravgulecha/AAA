@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- Critical for mobile responsiveness, prevents unwanted zooming -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Employee Work Tracker | Secure Portal</title>
+    
+    <!-- Custom Favicon added here -->
+    <link rel="icon" type="image/png" href="https://souravgulecha.github.io/AAA/CA_logo.png">
+
+    <style>
+        /* CSS reset to ensure the iframe takes up the exact full screen securely on mobile */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Prevents double scrollbars */
+            background-color: #0f172a; /* Deep blue background matching your app's splash screen */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            /* Prevents the rubber-band scroll effect on iOS/Android */
+            overscroll-behavior: none; 
+            touch-action: none;
+        }
+        
+        .app-iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+            /* Ensures iframe sits above the loading text once loaded */
+            z-index: 10;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Loading fallback while iframe initializes or if network is slow */
+        .loading-fallback {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #f8fafc;
+            text-align: center;
+            z-index: 1; /* Hides behind the iframe once it loads */
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .loading-fallback h2 {
+            font-weight: 500;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #38bdf8;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px auto;
+        }
+
+        /* Maintenance Mode Card */
+        .maintenance-mode {
+            display: none; /* Hidden by default, toggled by JS */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 30px 20px;
+            text-align: center;
+            z-index: 20;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            color: #f8fafc;
+        }
+
+        .maintenance-mode h2 {
+            color: #f87171; /* A soft red for the warning */
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .maintenance-mode p {
+            color: #cbd5e1;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Default Loading State -->
+    <div class="loading-fallback" id="loadingState">
+        <div class="spinner"></div>
+        <h2>Connecting to Secure Workspace...</h2>
+        <p style="color: #94a3b8; font-size: 0.9rem; margin: 0;">Please ensure location services are enabled.</p>
+    </div>
+
+    <!-- Maintenance Mode State -->
+    <div class="maintenance-mode" id="maintenanceState">
+        <h2><span style="font-size: 2.5rem; display: block; margin-bottom: 10px;">🚧</span>Portal Under Maintenance</h2>
+        <p>The Employee Work Tracker is currently unavailable or undergoing routine configuration.</p>
+        <p style="margin-bottom: 0;"><strong>Please contact your system administrator for further assistance.</strong></p>
+    </div>
+
+    <!-- 
+      INSTRUCTIONS: 
+      1. Deploy your Google Apps Script as a Web App (Execute as: Me, Who has access: Anyone).
+      2. Copy the resulting Web App URL.
+      3. Paste it inside the 'src' attribute below, replacing 'YOUR_GAS_WEB_APP_URL'.
+      4. Upload this file to your GitHub repository.
+    -->
+    <iframe 
+        id="appIframe"
+        class="app-iframe" 
+        src="https://script.google.com/macros/s/AKfycbxDtmWUC0cW1U8IW0Bj4tMGFXdmT7EzNRaPUVdVnwVdupZVNOEeprONzHw0zPqUaTko/exec" 
+        allow="geolocation; clipboard-write; clipboard-read"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
+        title="Employee Work Tracker Platform">
+    </iframe>
+
+    <!-- Script to validate URL and toggle maintenance mode -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const iframe = document.getElementById('appIframe');
+            const loadingState = document.getElementById('loadingState');
+            const maintenanceState = document.getElementById('maintenanceState');
+            const appUrl = iframe.getAttribute('src');
+
+            // Check if the URL is empty, missing, or still set to the default placeholder text
+            if (!appUrl || appUrl.trim() === '' || appUrl === 'YOUR_GAS_WEB_APP_URL' || !appUrl.startsWith('http')) {
+                // Invalid URL: Hide the iframe and loading spinner, show the maintenance card
+                iframe.style.display = 'none';
+                loadingState.style.display = 'none';
+                maintenanceState.style.display = 'block';
+            }
+        });
+    </script>
+
+</body>
+</html>
