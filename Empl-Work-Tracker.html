@@ -1,162 +1,1444 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <!-- Critical for mobile responsiveness, prevents unwanted zooming -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Employee Work Tracker | Secure Portal</title>
-    
-    <!-- Custom Favicon added here -->
-    <link rel="icon" type="image/png" href="https://souravgulecha.github.io/AAA/CA_logo.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Work Tracker | Arasu & Arunachalam LLP</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script>
+    // =========================================================================
+    // GAS TO GITHUB BRIDGE (Polyfill)
+    // Replace the URL below with your active Google Apps Script Web App URL.
+    // =========================================================================
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxDtmWUC0cW1U8IW0Bj4tMGFXdmT7EzNRaPUVdVnwVdupZVNOEeprONzHw0zPqUaTko/exec";
 
-    <style>
-        /* CSS reset to ensure the iframe takes up the exact full screen securely on mobile */
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden; /* Prevents double scrollbars */
-            background-color: #0f172a; /* Deep blue background matching your app's splash screen */
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            /* Prevents the rubber-band scroll effect on iOS/Android */
-            overscroll-behavior: none; 
-            touch-action: none;
-        }
-        
-        .app-iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-            /* Ensures iframe sits above the loading text once loaded */
-            z-index: 10;
-            transition: opacity 0.3s ease;
-        }
+    window.google = { script: { run: {} } };
 
-        /* Loading fallback while iframe initializes or if network is slow */
-        .loading-fallback {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #f8fafc;
-            text-align: center;
-            z-index: 1; /* Hides behind the iframe once it loads */
-            width: 100%;
-            padding: 20px;
-            box-sizing: border-box;
-        }
+    function createRunner() {
+        let successHandler = null;
+        let failureHandler = null;
 
-        .loading-fallback h2 {
-            font-weight: 500;
-            margin-bottom: 10px;
-            font-size: 1.3rem;
-        }
-        
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-top: 4px solid #38bdf8;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px auto;
-        }
-
-        /* Maintenance Mode Card */
-        .maintenance-mode {
-            display: none; /* Hidden by default, toggled by JS */
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 30px 20px;
-            text-align: center;
-            z-index: 20;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            color: #f8fafc;
-        }
-
-        .maintenance-mode h2 {
-            color: #f87171; /* A soft red for the warning */
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-size: 1.4rem;
-        }
-
-        .maintenance-mode p {
-            color: #cbd5e1;
-            font-size: 0.95rem;
-            line-height: 1.5;
-            margin-bottom: 15px;
-        }
-
-        @keyframes spin { 
-            0% { transform: rotate(0deg); } 
-            100% { transform: rotate(360deg); } 
-        }
-    </style>
-</head>
-<body>
-
-    <!-- Default Loading State -->
-    <div class="loading-fallback" id="loadingState">
-        <div class="spinner"></div>
-        <h2>Connecting to Secure Workspace...</h2>
-        <p style="color: #94a3b8; font-size: 0.9rem; margin: 0;">Please ensure location services are enabled.</p>
-    </div>
-
-    <!-- Maintenance Mode State -->
-    <div class="maintenance-mode" id="maintenanceState">
-        <h2><span style="font-size: 2.5rem; display: block; margin-bottom: 10px;">🚧</span>Portal Under Maintenance</h2>
-        <p>The Employee Work Tracker is currently unavailable or undergoing routine configuration.</p>
-        <p style="margin-bottom: 0;"><strong>Please contact your system administrator for further assistance.</strong></p>
-    </div>
-
-    <!-- 
-      INSTRUCTIONS: 
-      1. Deploy your Google Apps Script as a Web App (Execute as: Me, Who has access: Anyone).
-      2. Copy the resulting Web App URL.
-      3. Paste it inside the 'src' attribute below, replacing 'YOUR_GAS_WEB_APP_URL'.
-      4. Upload this file to your GitHub repository.
-    -->
-    <iframe 
-        id="appIframe"
-        class="app-iframe" 
-        src="https://script.google.com/macros/s/AKfycbxDtmWUC0cW1U8IW0Bj4tMGFXdmT7EzNRaPUVdVnwVdupZVNOEeprONzHw0zPqUaTko/exec" 
-        allow="geolocation; clipboard-write; clipboard-read"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
-        title="Employee Work Tracker Platform">
-    </iframe>
-
-    <!-- Script to validate URL and toggle maintenance mode -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const iframe = document.getElementById('appIframe');
-            const loadingState = document.getElementById('loadingState');
-            const maintenanceState = document.getElementById('maintenanceState');
-            const appUrl = iframe.getAttribute('src');
-
-            // Check if the URL is empty, missing, or still set to the default placeholder text
-            if (!appUrl || appUrl.trim() === '' || appUrl === 'YOUR_GAS_WEB_APP_URL' || !appUrl.startsWith('http')) {
-                // Invalid URL: Hide the iframe and loading spinner, show the maintenance card
-                iframe.style.display = 'none';
-                loadingState.style.display = 'none';
-                maintenanceState.style.display = 'block';
+        const runner = new Proxy({}, {
+            get: function(target, prop) {
+                if (prop === 'withSuccessHandler') {
+                    return function(handler) {
+                        successHandler = handler;
+                        return runner;
+                    };
+                }
+                if (prop === 'withFailureHandler') {
+                    return function(handler) {
+                        failureHandler = handler;
+                        return runner;
+                    };
+                }
+                return function(...args) {
+                    const payload = { method: prop, args: args };
+                    fetch(GAS_WEB_APP_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify(payload)
+                    })
+                    .then(response => response.json())
+                    .then(res => {
+                        if (res.error) {
+                            if (failureHandler) failureHandler(new Error(res.error));
+                            else console.error("GAS Error:", res.error);
+                        } else {
+                            if (successHandler) successHandler(res.result);
+                        }
+                    })
+                    .catch(err => {
+                        if (failureHandler) failureHandler(err);
+                        else console.error("Network Error:", err);
+                    });
+                };
             }
         });
-    </script>
+        return runner;
+    }
 
+    Object.defineProperty(window.google.script, 'run', {
+        get: function() { return createRunner(); }
+    });
+  </script>
+
+  <style>
+    .splash-screen {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background-color: #0f172a; color: white; display: flex; justify-content: center; align-items: center;
+      z-index: 10000;
+      animation: splashFade 2s ease-in-out forwards;
+      pointer-events: none;
+    }
+    @keyframes splashFade {
+      0% { opacity: 1; visibility: visible; } 
+      80% { opacity: 1; visibility: visible; } 
+      100% { opacity: 0; visibility: hidden; display: none; }
+    }
+    .splash-content { text-align: center; }
+    .splash-content h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .loading-bar { width: 150px; height: 6px; background: #475569; margin: 10px auto; border-radius: 5px; overflow: hidden; position: relative; }
+    .loading-bar::before { content: ''; position: absolute; left: -50%; width: 50%; height: 100%; background: #38bdf8; animation: loadingAnim 1.5s infinite; }
+    @keyframes loadingAnim { 0% { left: -50%; } 50% { left: 100%; } 100% { left: 100%; } }
+
+    :root {
+      --primary: #2F80ED; --success: #27AE60; --danger: #EB5757;
+      --background: #F8F9FD; --card-bg: #FFFFFF; --text-primary: #2D3436;
+      --text-secondary: #636E72; --border: #DFE6E9; --shadow: 0 10px 30px rgba(0,0,0,0.05);
+      --radius: 12px; --spacing: 1.5rem;
+    }
+    html { box-sizing: border-box; }
+    *, *:before, *:after { box-sizing: inherit; }
+    body { font-family: 'Inter', sans-serif; background: var(--background); color: var(--text-primary); margin: 0; padding: 0; line-height: 1.6; }
+    
+    .hidden { display: none !important; }
+    .w-full { width: 100%; }
+    .mt-4 { margin-top: 1rem; }
+    .text-center { text-align: center; }
+    
+    .app-container { padding: 2rem; max-width: 1000px; margin: 0 auto; }
+    
+    #login-view, #message-view {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      display: flex; align-items: center; justify-content: center; 
+      background: #0f172a; padding: 1rem; z-index: 1000;
+    }
+
+    .login-card { 
+      background: white; padding: 2.5rem; border-radius: 12px; 
+      width: 100%; max-width: 400px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
+    }
+    .brand-logo { font-size: 1.5rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem; text-align: center; }
+    .brand-sub { text-align: center; color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.9rem; }
+
+    .form-box { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); padding: 2.5rem; position: relative; }
+    .header { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1.5rem; position: relative; }
+    .header h1 { font-weight: 700; color: var(--primary); margin: 0 0 0.5rem; font-size: 2.2rem; letter-spacing: -0.5px; }
+    .logout-btn { position: absolute; top: 0; right: 0; padding: 0.5rem 1rem; font-size: 0.85rem; }
+
+    .form-section { margin: 0 0 var(--spacing) 0; padding: var(--spacing); background: #FBFCFE; border-radius: var(--radius); border: 1px solid var(--border); }
+    .section-heading { font-size: 1.15rem; color: var(--primary); margin-top: 0; margin-bottom: 1.2rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.6rem; display: flex; align-items: center; gap: 0.6rem; }
+    
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacing); margin-bottom: var(--spacing); }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing); }
+    .grid-2-time { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+    .form-group { margin-bottom: 1.5rem; position: relative; }
+    label { display: block; font-weight: 500; margin-bottom: 0.8rem; color: var(--text-primary); font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem; }
+    
+    input, select, textarea {
+      width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem;
+      box-sizing: border-box; transition: all 0.2s ease; background-color: #fff; color: var(--text-primary);
+    }
+    input:disabled, select:disabled, textarea:disabled, button:disabled {
+        background-color: #e9ecef; color: #6c757d; cursor: not-allowed; opacity: 0.7;
+    }
+    .locked-field {
+        background-color: #e9ecef !important; color: #6c757d !important; opacity: 1; border-color: transparent; pointer-events: none;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.1); outline: none; }
+    
+    .task-card {
+      border: 1px solid var(--border); padding: 1.5rem; border-radius: var(--radius); margin-bottom: var(--spacing);
+      background-color: #fafafa; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05); position: relative; transition: all 0.3s ease;
+    }
+    .task-card.saved-card { border: 2px solid #94a3b8; background-color: #f1f5f9; }
+    
+    .task-badge {
+      display: inline-block; padding: 4px 8px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+      background-color: #e0f2fe; color: #0284c7; border-radius: 4px; margin-left: 10px; vertical-align: middle;
+    }
+    .task-badge.saved-badge { background-color: #e2e8f0; color: #475569; }
+
+    .remove-task {
+      position: absolute; top: 12px; right: 12px; color: var(--danger); background: none;
+      border: none; font-size: 1.3rem; cursor: pointer; opacity: 0.7; transition: opacity 0.2s ease; padding: 5px;
+    }
+    .remove-task:hover { opacity: 1; }
+    .time-inputs { display: flex; gap: 0.4rem; align-items: center; }
+    .time-inputs input { flex: 1; min-width: 60px; padding: 0.8rem 0.4rem; text-align: center; margin-bottom: 0; }
+
+    .btn { padding: 0.9rem 1.8rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: inline-flex; align-items: center; justify-content: center; gap: 0.8rem; font-size: 1rem; }
+    .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 6px rgba(47, 128, 237, 0.1); }
+    .btn-primary:hover:not(:disabled) { background: #256FBF; transform: translateY(-1px); }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover:not(:disabled) { background: #c0392b; }
+    .btn-success { background: var(--success); color: white; box-shadow: 0 4px 6px rgba(39, 174, 96, 0.1); }
+    .btn-success:hover:not(:disabled) { background: #219653; transform: translateY(-1px); }
+    .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-primary); }
+    .btn-outline:hover { background: var(--background); border-color: var(--text-secondary); }
+    
+    .footer { text-align: center; margin-top: 2.5rem; color: var(--text-secondary); font-size: 0.9rem; padding: 1rem; border-top: 1px solid var(--border); }
+
+    .modal {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 2000; animation: fadeIn 0.3s ease-out;
+    }
+    .modal-content {
+      background: white; padding: 2.5rem; border-radius: var(--radius); text-align: center;
+      max-width: 400px; width: 90%; transform: scale(0.95); animation: modalScale 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    .modal-content .icon-success { font-size: 3rem; color: var(--success); margin-bottom: 1rem; }
+    .modal-content .icon-error { font-size: 3rem; color: var(--danger); margin-bottom: 1rem; }
+    .modal-content p { margin-bottom: 1.5rem; font-size: 1.1rem; color: var(--text-primary); }
+    
+    .loading-modal {
+        position: fixed; z-index: 9999; top: 0; left: 0; height: 100%; width: 100%;
+        background: rgba(255, 255, 255, 0.85); display: none; justify-content: center; align-items: center;
+    }
+    .spinner-container { text-align: center; }
+    .spinner {
+        border: 6px solid #e0e0e0; border-top: 6px solid var(--primary);
+        border-radius: 50%; width: 60px; height: 60px; margin: 0 auto 15px;
+        animation: spin 1s linear infinite;
+    }
+
+    .recall-task-item {
+        display: flex; align-items: flex-start; gap: 10px; padding: 12px; margin-bottom: 8px;
+        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer;
+        transition: all 0.2s;
+    }
+    .recall-task-item:hover { background: #f1f5f9; border-color: #cbd5e1; }
+    .recall-task-item input { margin-top: 4px; width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary); }
+    .recall-task-content { flex: 1; text-align: left; }
+    
+    .input-addon-group { display: flex; align-items: center; gap: 10px; }
+    .input-addon-group input { flex: 1; margin-bottom: 0; }
+    
+    .autocomplete-wrapper { position: relative; width: 100%; }
+    .autocomplete-wrapper.active { z-index: 100; }
+    .autocomplete-list { 
+        position: absolute; top: 100%; left: 0; right: 0; 
+        background: #fff; border: 1px solid var(--border); border-radius: 8px; 
+        max-height: 250px; overflow-y: auto; z-index: 9999; 
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none; margin-top: 4px;
+    }
+    .autocomplete-item { 
+        padding: 12px 14px; cursor: pointer; border-bottom: 1px solid #f1f5f9; 
+        display: flex; justify-content: space-between; align-items: center; 
+        transition: background 0.1s;
+    }
+    .autocomplete-item:hover { background-color: #f1f5f9; }
+    .autocomplete-item:last-child { border-bottom: none; }
+    .client-pan-badge { 
+        font-size: 0.75rem; color: #0ea5e9; font-weight: 600; 
+        background: #f0f9ff; padding: 2px 6px; border-radius: 4px; border: 1px solid #bae6fd;
+    }
+    .client-name-text { font-size: 0.95rem; color: var(--text-primary); font-weight: 500; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes modalScale { from { transform: scale(0.95); opacity: 0.8; } to { transform: scale(1); opacity: 1; } }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    @media (max-width: 768px) {
+      .app-container { padding: 1rem; }
+      .form-box { padding: 1.5rem; }
+      .grid-2, .grid-3, .grid-2-time { grid-template-columns: 1fr; gap: 0.5rem; margin-bottom: 0; }
+      .time-inputs input { min-width: 50px; padding: 0.7rem; }
+      .form-group { margin-bottom: 1rem; }
+      .header h1 { font-size: 1.8rem; }
+      .btn { width: 100%; justify-content: center; padding: 0.8rem 1rem; }
+      .logout-btn { position: relative; width: 100%; margin-top: 1rem; }
+      .input-addon-group { flex-direction: column; align-items: stretch; }
+      .input-addon-group button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  
+  <div id="splash" class="splash-screen">
+    <div class="splash-content">
+      <h1>Arasu & Arunachalam LLP</h1>
+      <p>Loading Platform...</p>
+      <div class="loading-bar"></div>
+    </div>
+  </div>
+
+  <div id="login-view" class="hidden">
+    <div class="login-card">
+      <div class="brand-logo">Arasu & Arunachalam LLP</div>
+      <div class="brand-sub">Employee Authorization</div>
+      
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <label for="empId"><i class="fas fa-id-badge"></i> Employee ID</label>
+        <input type="text" id="empId" required placeholder="Enter your Employee ID">
+        
+        <label for="password" style="margin-top: 1rem;"><i class="fas fa-lock"></i> Password</label>
+        <input type="password" id="password" required placeholder="Enter your Password">
+        
+        <button type="submit" class="btn btn-primary w-full mt-4" id="loginBtn">
+          <i class="fas fa-sign-in-alt"></i> Login
+        </button>
+      </form>
+      <div id="loginError" class="mt-4 text-center" style="color: var(--danger); font-size: 0.9rem; font-weight: 500;"></div>
+      
+      <hr style="margin: 1.5rem 0; border: 0; border-top: 1px solid var(--border);">
+      
+      <button type="button" class="btn btn-outline w-full" onclick="showAdminLoginModal()">
+        <i class="fas fa-user-shield"></i> Admin Dashboard
+      </button>
+    </div>
+  </div>
+
+  <div id="message-view" class="hidden">
+    <div class="login-card" style="text-align: center; padding: 3.5rem 2rem;">
+      <i id="message-icon" class="fas fa-check-circle" style="font-size: 4rem; color: var(--success); margin-bottom: 1.5rem;"></i>
+      <h2 id="message-title" style="color: var(--text-primary); margin-bottom: 1rem; font-size: 1.6rem; letter-spacing: -0.5px;">Message</h2>
+      <p id="message-subtitle" style="color: var(--text-secondary); font-size: 1.05rem; margin-bottom: 0; line-height: 1.5;">Details here.</p>
+      <button type="button" id="message-close-btn" class="btn btn-primary w-full mt-4 hidden" onclick="closeTerminalMessage()">Continue</button>
+    </div>
+  </div>
+
+  <div id="adminLoginModal" class="modal">
+    <div class="modal-content" style="padding: 2rem;">
+      <i class="fas fa-user-shield" style="font-size: 2.5rem; color: #1e3a8a; margin-bottom: 1rem;"></i>
+      <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">Admin Access</h3>
+      <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Please authenticate to access reports.</p>
+      
+      <input type="password" id="adminPwdInput" placeholder="Enter Admin Password" required style="margin-bottom: 1rem;">
+      <div id="adminLoginError" style="color: var(--danger); font-size: 0.85rem; margin-bottom: 1rem; display: none;"></div>
+      
+      <button class="btn btn-primary w-full" id="adminAuthBtn" onclick="verifyAdminAuth()">Authorize</button>
+      <button class="btn btn-outline w-full mt-4" style="margin-top: 0.5rem;" onclick="closeAdminLoginModal()">Cancel</button>
+    </div>
+  </div>
+  
+  <div id="unlockModal" class="modal">
+    <div class="modal-content" style="padding: 2rem;">
+      <i class="fas fa-unlock-alt" style="font-size: 2.5rem; color: #1e3a8a; margin-bottom: 1rem;"></i>
+      <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">Admin Override</h3>
+      <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Unlock Date & Attendance fields.</p>
+      
+      <input type="password" id="unlockPwd" placeholder="Enter Access Key" required style="margin-bottom: 1rem;">
+      <div id="unlockError" style="color: var(--danger); font-size: 0.85rem; margin-bottom: 1rem; display: none;"></div>
+      
+      <button class="btn btn-primary w-full" id="unlockBtn" onclick="verifyUnlock()">Unlock Fields</button>
+      <button class="btn btn-outline w-full mt-4" style="margin-top: 0.5rem;" onclick="document.getElementById('unlockModal').style.display='none'">Cancel</button>
+    </div>
+  </div>
+
+  <div id="errorModal" class="modal">
+      <div class="modal-content">
+        <i class="fas fa-exclamation-circle icon-error"></i>
+        <p id="errorModalText">An error occurred.</p>
+        <button class="btn btn-primary" onclick="closeErrorModal()">OK</button>
+      </div>
+  </div>
+
+  <div id="locationModal" class="modal">
+    <div class="modal-content" style="padding: 2rem;">
+      <i class="fas fa-map-marker-alt" style="font-size: 3rem; color: #f59e0b; margin-bottom: 1rem;"></i>
+      <h3 style="margin-top:0; color: var(--text-primary);">Location Required</h3>
+      <p id="locationModalText" style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Please enable GPS/Location services and grant browser permissions to continue.</p>
+      <div style="display:flex; justify-content:center; gap:10px;">
+        <button type="button" class="btn btn-outline" onclick="closeLocationModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="retryLocation()">Retry Access</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="recallModal" class="modal">
+    <div class="modal-content" style="max-width: 550px; text-align: left;">
+      <h3 style="margin-top:0; color:var(--primary); text-align: center;"><i class="fas fa-history"></i> Recall Pending Tasks</h3>
+      <p style="font-size: 0.9rem; color: var(--text-secondary); text-align: center; margin-bottom: 1rem;">Select active tasks from your tray to continue logging time.</p>
+      
+      <div id="pendingTasksList" style="max-height: 350px; overflow-y: auto; padding-right: 5px; margin-bottom: 1.5rem;"></div>
+      
+      <div style="display:flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" class="btn btn-outline" onclick="closeRecallModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="confirmRecall()"><i class="fas fa-download"></i> Recall Selected</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="loadingModal" class="loading-modal">
+      <div class="spinner-container">
+          <div class="spinner"></div>
+          <p id="loadingText">Processing...</p>
+      </div>
+  </div>
+
+  <div id="app-view" class="hidden">
+    <div class="app-container">
+      <div class="form-box">
+        <div class="header">
+          <h1><i class="fas fa-clipboard-list"></i> Work Tracker</h1>
+          <p style="color: var(--text-secondary); margin-top: 5px;">Arasu & Arunachalam LLP - Employee Daily Report</p>
+          <button type="button" onclick="handleLogout()" class="btn btn-danger logout-btn" title="Logout">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </button>
+        </div>
+
+        <form id="workForm">
+          <div class="form-section">
+            <h3 class="section-heading"><i class="fas fa-id-card"></i> Basic Details</h3>
+            <div class="grid-2">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label for="employeeNameField">Employee Name</label>
+                <input type="text" id="employeeNameField" class="locked-field" readonly>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label for="dateField">Date</label>
+                <input type="date" id="dateField" class="locked-field" readonly>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 class="section-heading">
+                <i class="fas fa-clock"></i> Attendance Hub 
+                <button type="button" class="btn" style="background:none; color:var(--text-secondary); padding:0 10px;" onclick="document.getElementById('unlockModal').style.display='flex'; document.getElementById('unlockError').style.display='none'; document.getElementById('unlockPwd').value='';">
+                    <i class="fas fa-lock"></i>
+                </button>
+            </h3>
+            <div class="grid-2">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label>In Time</label>
+                <div class="input-addon-group">
+                    <input type="time" id="inTimeDisplay" class="locked-field" readonly>
+                    <button type="button" id="punchInBtn" class="btn btn-success" onclick="handlePunchIn()"><i class="fas fa-sign-in-alt"></i> Punch In</button>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0;">
+                <label>Out Time</label>
+                <div class="input-addon-group">
+                    <input type="time" id="outTimeDisplay" class="locked-field" readonly>
+                    <button type="button" id="punchOutBtn" class="btn btn-danger" onclick="handlePunchOut()" disabled><i class="fas fa-sign-out-alt"></i> Punch Out</button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-group full-width hidden" id="lateReasonGroup" style="margin-top: 1rem;">
+                <label>Reason for Late Check-in <span style="color:var(--danger);">*</span></label>
+                <textarea id="lateReason" class="form-control" rows="2" placeholder="Please provide a valid reason..."></textarea>
+            </div>
+            
+            <div class="form-group full-width hidden" id="earlyLogoutGroup" style="margin-top: 1rem;">
+                <label>Reason for Early Logout <span style="color:var(--danger);">*</span></label>
+                <textarea id="earlyLogoutReason" class="form-control" rows="2" placeholder="Please provide a valid reason..."></textarea>
+            </div>
+          </div>
+
+          <div id="createSection" class="form-section" style="display: none;">
+            <h3 class="section-heading"><i class="fas fa-plus-square"></i> Create New Tasks</h3>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: -10px; margin-bottom: 1rem;">Create tasks to push them into the firm's pending tray.</p>
+            
+            <div id="createTaskList"></div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button type="button" class="btn btn-outline" onclick="addCreateTask()"><i class="fas fa-plus"></i> Add Task</button>
+                <button type="button" id="uploadTasksBtn" class="btn btn-primary hidden" onclick="processTaskCreation()"><i class="fas fa-upload"></i> Upload Task(s)</button>
+            </div>
+          </div>
+          
+          <div id="logSection" class="form-section" style="display: none;">
+            <h3 class="section-heading"><i class="fas fa-tasks"></i> Today's Work Log</h3>
+            <button type="button" class="btn btn-outline" onclick="openRecallModal()">
+              <i class="fas fa-history"></i> Recall Pending Tasks
+            </button>
+            <div id="activeTaskList" style="margin-top: 1.5rem;"></div>
+          </div>
+
+          <div style="text-align: center; margin-top: 2.5rem;">
+            <button type="button" id="finalSubmitBtn" class="btn btn-primary locked-field" style="font-size: 1.1rem; padding: 1rem 3rem;" onclick="handleFinalSubmit()" disabled>
+              <i class="fas fa-check-double"></i> Complete Day
+            </button>
+          </div>
+        </form>
+
+        <div class="footer">
+          Developed by Sourav | Arasu and Arunachalam LLP
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showView(viewId) {
+      ['login-view', 'message-view', 'app-view'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) {
+          if (id === viewId) el.classList.remove('hidden');
+          else el.classList.add('hidden');
+        }
+      });
+    }
+
+    const dateField = document.getElementById("dateField");
+    const employeeNameField = document.getElementById("employeeNameField");
+    
+    let internalCreateCounter = 0; 
+    let internalLogCounter = 0;
+    let inactivityTimer; 
+    let globalEmployeeNames = []; 
+    let globalClientList = []; 
+    let appState = { inTime: "", outTime: "", sessionID: "", earlyLogoutReason: "", lateReason: "" };
+
+    const _now = new Date();
+    const localMonth = String(_now.getMonth() + 1).padStart(2, '0');
+    const localDay = String(_now.getDate()).padStart(2, '0');
+    const todayStr = `${_now.getFullYear()}-${localMonth}-${localDay}`;
+
+    // --- Autocomplete Setup ---
+    function setupAutocomplete(inputId, idx) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+
+        const statusEl = document.getElementById(`clientDbStatus-${idx}`);
+        if (globalClientList.length === 0) {
+            if(statusEl) {
+                statusEl.innerHTML = "⚠️ DB Offline";
+                statusEl.style.color = "var(--danger)";
+            }
+        } else {
+            if(statusEl) {
+                statusEl.innerHTML = `<i class="fas fa-check-circle"></i> DB Active`;
+                statusEl.style.color = "var(--success)";
+            }
+        }
+        
+        const wrapper = document.createElement('div');
+        wrapper.className = 'autocomplete-wrapper';
+        input.parentNode.insertBefore(wrapper, input);
+        wrapper.appendChild(input);
+        
+        const list = document.createElement('div');
+        list.className = 'autocomplete-list';
+        wrapper.appendChild(list);
+        
+        let isHoveringList = false;
+        list.addEventListener('mouseenter', () => isHoveringList = true);
+        list.addEventListener('mouseleave', () => isHoveringList = false);
+
+        function renderList(matches) {
+            list.innerHTML = '';
+            
+            if (globalClientList.length === 0) {
+                list.style.display = 'block';
+                list.innerHTML = '<div class="autocomplete-item" style="color:var(--danger); cursor:default; background: #fef2f2;">Client DB could not be loaded. You may enter client names manually.</div>';
+                return;
+            }
+
+            if (matches.length === 0) {
+                list.style.display = 'block';
+                list.innerHTML = '<div class="autocomplete-item" style="color:var(--text-secondary); cursor:default;">No matches found.</div>';
+                return;
+            }
+
+            list.style.display = 'block';
+            matches.forEach(match => {
+                const div = document.createElement('div');
+                div.className = 'autocomplete-item';
+
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'client-name-text';
+                nameSpan.textContent = match.name;
+                div.appendChild(nameSpan);
+                
+                if (match.pan && match.pan.toLowerCase() !== "na" && match.pan !== "-") {
+                    const panSpan = document.createElement('span');
+                    panSpan.className = 'client-pan-badge';
+                    panSpan.textContent = match.pan;
+                    div.appendChild(panSpan);
+                }
+                
+                div.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    input.value = match.finalValue;
+                    list.style.display = 'none';
+                    wrapper.classList.remove('active');
+                    isHoveringList = false;
+                });
+                list.appendChild(div);
+            });
+        }
+
+        input.addEventListener('input', function() {
+            const val = this.value.toLowerCase();
+            if (!val) {
+                list.style.display = 'none';
+                wrapper.classList.remove('active');
+                return;
+            }
+            wrapper.classList.add('active');
+            const matches = globalClientList.filter(c => 
+                c.name.toLowerCase().includes(val) || 
+                (c.pan && c.pan.toLowerCase().includes(val)) ||
+                (c.finalValue && c.finalValue.toLowerCase().includes(val))
+            ).slice(0, 50); 
+            renderList(matches);
+        });
+        
+        input.addEventListener('focus', function() {
+            wrapper.classList.add('active');
+            if (!this.value && globalClientList.length > 0) {
+                renderList(globalClientList.slice(0, 50));
+            } else if (this.value) {
+                this.dispatchEvent(new Event('input'));
+            } else if (globalClientList.length === 0) {
+                renderList([]); 
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            if (e.target !== input && e.target !== list && !list.contains(e.target)) {
+                list.style.display = 'none';
+                wrapper.classList.remove('active');
+            }
+        });
+
+        input.addEventListener('blur', function() {
+            if (isHoveringList) return;
+            
+            if (globalClientList.length === 0) return;
+            const val = input.value.trim();
+            if (!val) return;
+            
+            const match = globalClientList.find(c => 
+                c.finalValue.toLowerCase() === val.toLowerCase() || 
+                c.name.toLowerCase() === val.toLowerCase() ||
+                (c.pan && c.pan.toLowerCase() === val.toLowerCase())
+            );
+
+            if (match) {
+                input.value = match.finalValue; 
+            } else {
+                input.value = ''; 
+                showError("Invalid client name. Please select a valid client from the dropdown.");
+            }
+        });
+    }
+
+    // --- Admin Flow with Redirect ---
+    function showAdminLoginModal() {
+      document.getElementById('adminLoginModal').style.display = 'flex';
+      document.getElementById('adminPwdInput').value = '';
+      document.getElementById('adminLoginError').style.display = 'none';
+    }
+    function closeAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'none'; }
+    
+    function verifyAdminAuth() {
+      const pwd = document.getElementById('adminPwdInput').value;
+      const btn = document.getElementById('adminAuthBtn');
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+      btn.disabled = true;
+      document.getElementById('adminLoginError').style.display = 'none';
+
+      google.script.run
+        .withSuccessHandler(res => {
+            btn.innerHTML = 'Authorize'; btn.disabled = false;
+            if(res.success) {
+                sessionStorage.setItem('adminToken', res.adminToken);
+                closeAdminLoginModal();
+                // REDIRECT TO REPORT HTML ON GITHUB PAGES
+                window.location.href = 'report.html';
+            } else {
+                document.getElementById('adminLoginError').textContent = res.message;
+                document.getElementById('adminLoginError').style.display = 'block';
+            }
+        })
+        .withFailureHandler(err => {
+            btn.innerHTML = 'Authorize'; btn.disabled = false;
+            document.getElementById('adminLoginError').textContent = err.message;
+            document.getElementById('adminLoginError').style.display = 'block';
+        })
+        .verifyAdminAuthServer(pwd);
+    }
+    
+    // --- Unlock Override Flow ---
+    function verifyUnlock() {
+        const pwd = document.getElementById('unlockPwd').value;
+        const btn = document.getElementById('unlockBtn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Unlocking...';
+        btn.disabled = true;
+        document.getElementById('unlockError').style.display = 'none';
+
+        google.script.run
+            .withSuccessHandler(res => {
+                btn.innerHTML = 'Unlock Fields'; btn.disabled = false;
+                if(res.success) {
+                    document.getElementById('dateField').removeAttribute('readonly');
+                    document.getElementById('dateField').classList.remove('locked-field');
+                    document.getElementById('inTimeDisplay').removeAttribute('readonly');
+                    document.getElementById('inTimeDisplay').classList.remove('locked-field');
+                    document.getElementById('outTimeDisplay').removeAttribute('readonly');
+                    document.getElementById('outTimeDisplay').classList.remove('locked-field');
+                    document.getElementById('unlockModal').style.display = 'none';
+                    document.getElementById('unlockPwd').value = '';
+                    showTerminalMessage("Fields Unlocked", "You can now edit Date, In Time, and Out Time manually.", "fas fa-unlock", "var(--success)", true);
+                } else {
+                    document.getElementById('unlockError').textContent = res.message;
+                    document.getElementById('unlockError').style.display = 'block';
+                }
+            })
+            .withFailureHandler(err => {
+                btn.innerHTML = 'Unlock Fields'; btn.disabled = false;
+                document.getElementById('unlockError').textContent = err.message;
+                document.getElementById('unlockError').style.display = 'block';
+            })
+            .verifyUnlockServer(pwd);
+    }
+
+    // --- STREAMING_CHUNK:Defining App Tracking State... ---
+    function initializeForm() {
+        setTimeout(() => {
+            const splash = document.getElementById('splash');
+            if(splash) splash.style.display = 'none';
+        }, 2100);
+
+        const token = sessionStorage.getItem('authToken');
+        const empName = sessionStorage.getItem('empName');
+        const empId = sessionStorage.getItem('empId');
+
+        if (token && empName && empId) {
+            showView('app-view');
+            employeeNameField.value = empName;
+            dateField.value = todayStr;
+            resetInactivityTimer();
+            fetchInitializationData(empId, empName, true, false);
+        } else {
+            showView('login-view');
+        }
+    }
+
+    function resetInactivityTimer() {
+        clearTimeout(inactivityTimer);
+        if (sessionStorage.getItem('authToken')) {
+            inactivityTimer = setTimeout(() => {
+                sessionStorage.removeItem('authToken');
+                showTerminalMessage("Session Expired", "You have been logged out due to inactivity.", "fas fa-clock", "#f59e0b");
+            }, 5 * 60 * 1000); 
+        }
+    }
+
+    function setupInactivityTracking() {
+        ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'].forEach(evt => 
+            document.addEventListener(evt, resetInactivityTimer, true)
+        );
+    }
+
+    function handleLogout() {
+        sessionStorage.clear();
+        showTerminalMessage("Successfully Logged Out", "You can safely close this page now.");
+    }
+
+    function showTerminalMessage(title, subtitle, iconClass = 'fas fa-check-circle', iconColor = 'var(--success)', showClose = false) {
+        showView('message-view');
+        const splash = document.getElementById('splash');
+        if(splash) splash.style.display = 'none';
+        document.getElementById('message-title').textContent = title;
+        document.getElementById('message-subtitle').textContent = subtitle;
+        const iconEl = document.getElementById('message-icon');
+        iconEl.className = iconClass;
+        iconEl.style.color = iconColor;
+        
+        const closeBtn = document.getElementById('message-close-btn');
+        if (showClose) closeBtn.classList.remove('hidden');
+        else closeBtn.classList.add('hidden');
+    }
+
+    function closeTerminalMessage() { showView('app-view'); }
+
+    let locationSuccessCallback = null;
+
+    function fetchLocationWithRetry(onSuccess) {
+        if (!navigator.geolocation) {
+            showError("Geolocation is not supported by your browser. Please update your browser.");
+            return;
+        }
+        
+        setLoading(true);
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                setLoading(false);
+                const locStr = `${position.coords.latitude}, ${position.coords.longitude}`;
+                onSuccess(locStr);
+            },
+            (error) => {
+                setLoading(false);
+                let msg = "Please enable GPS/Location services and grant browser permissions to verify your attendance.";
+                if (error.code === error.PERMISSION_DENIED) {
+                    msg = "Location permission was denied. Please allow location access in your browser site settings and try again.";
+                } else if (error.code === error.POSITION_UNAVAILABLE) {
+                    msg = "Location information is unavailable. Ensure your device GPS is turned on.";
+                } else if (error.code === error.TIMEOUT) {
+                    msg = "Location request timed out. Please try again.";
+                }
+                document.getElementById('locationModalText').textContent = msg;
+                document.getElementById('locationModal').style.display = 'flex';
+                locationSuccessCallback = onSuccess; 
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        );
+    }
+
+    function closeLocationModal() {
+        document.getElementById('locationModal').style.display = 'none';
+        locationSuccessCallback = null;
+    }
+
+    function retryLocation() {
+        document.getElementById('locationModal').style.display = 'none';
+        if (locationSuccessCallback) {
+            fetchLocationWithRetry(locationSuccessCallback);
+        }
+    }
+
+    function handleLogin(e) {
+        e.preventDefault();
+        const btn = document.getElementById('loginBtn');
+        const errorDiv = document.getElementById('loginError');
+        const empId = document.getElementById('empId').value.trim();
+        const password = document.getElementById('password').value;
+        
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
+        btn.disabled = true; errorDiv.textContent = '';
+
+        google.script.run
+            .withSuccessHandler(res => {
+                sessionStorage.setItem('authToken', res.token);
+                sessionStorage.setItem('empName', res.employeeName);
+                sessionStorage.setItem('empId', res.empId); 
+                
+                btn.innerHTML = '<i class="fas fa-cog fa-spin"></i> Workspace getting ready...';
+                fetchInitializationData(res.empId, res.employeeName, false, true);
+            })
+            .withFailureHandler(err => {
+                errorDiv.textContent = err.message;
+                btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+            })
+            .authenticateUser(empId, password);
+    }
+
+    function fetchInitializationData(empId, empName, isInitialLoad = false, isFromLogin = false) {
+        if (!isInitialLoad && !isFromLogin) setLoading(true);
+        const token = sessionStorage.getItem('authToken');
+        
+        google.script.run
+            .withSuccessHandler(data => {
+                if (!isInitialLoad && !isFromLogin) setLoading(false);
+                
+                globalEmployeeNames = data.employeeNames;
+                globalClientList = data.clientList || []; 
+                appState = data.attendance;
+                
+                if (isInitialLoad || isFromLogin) {
+                    const splash = document.getElementById('splash');
+                    if(splash) splash.style.display = 'none';
+                    
+                    showView('app-view');
+                    employeeNameField.value = empName;
+                    dateField.value = todayStr;
+                    resetInactivityTimer();
+                    
+                    if (isFromLogin) {
+                        const btn = document.getElementById('loginBtn');
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+                    }
+                }
+                
+                if (appState.inTime) {
+                    document.getElementById('inTimeDisplay').value = appState.inTime;
+                    document.getElementById('punchInBtn').disabled = true;
+                    
+                    if (appState.lateReason) {
+                        document.getElementById('lateReason').value = appState.lateReason;
+                        document.getElementById('lateReasonGroup').classList.remove('hidden');
+                        document.getElementById('lateReason').classList.add('locked-field');
+                        document.getElementById('lateReason').readOnly = true;
+                    }
+                    
+                    if (appState.earlyLogoutReason) {
+                        document.getElementById('earlyLogoutReason').value = appState.earlyLogoutReason;
+                        document.getElementById('earlyLogoutGroup').classList.remove('hidden');
+                    }
+                    
+                    if (appState.outTime) {
+                        document.getElementById('outTimeDisplay').value = appState.outTime;
+                        document.getElementById('punchOutBtn').disabled = true;
+                        document.getElementById('createSection').style.display = 'none';
+                        document.getElementById('logSection').style.display = 'block';
+                        const recallBtn = document.querySelector('#logSection button');
+                        if(recallBtn) recallBtn.style.display = 'none';
+                        enableFinalSubmit();
+                    } else {
+                        document.getElementById('punchOutBtn').disabled = false;
+                        document.getElementById('createSection').style.display = 'block';
+                        document.getElementById('logSection').style.display = 'block';
+                    }
+                }
+                
+                if (data.todaySavedTasks && data.todaySavedTasks.length > 0) {
+                    document.getElementById('logSection').style.display = 'block';
+                    data.todaySavedTasks.forEach(task => renderLogTaskCard(task, true));
+                }
+            })
+            .withFailureHandler(err => {
+                if (!isInitialLoad && !isFromLogin) setLoading(false);
+                showError("Failed to initialize system: " + err.message);
+            })
+            .getInitializationData(empId, token);
+    }
+
+    // --- STREAMING_CHUNK:Loading Task Logic... ---
+    function handlePunchIn() {
+        const empId = sessionStorage.getItem('empId');
+        const token = sessionStorage.getItem('authToken');
+        if(!empId || !token) return showError("Session lost.");
+        
+        const dateStr = document.getElementById('dateField').value;
+        let inTimeStr = document.getElementById('inTimeDisplay').value;
+        if (document.getElementById('inTimeDisplay').hasAttribute('readonly') || !inTimeStr) {
+            const now = new Date();
+            const hStr = String(now.getHours()).padStart(2, '0');
+            const mStr = String(now.getMinutes()).padStart(2, '0');
+            inTimeStr = `${hStr}:${mStr}`;
+        }
+        
+        const [h, m] = inTimeStr.split(':').map(Number);
+        let lateReason = "";
+        if (h > 10 || (h === 10 && m > 30)) {
+            const reasonBox = document.getElementById('lateReason');
+            const group = document.getElementById('lateReasonGroup');
+            if (group.classList.contains('hidden') || !reasonBox.value.trim()) {
+                group.classList.remove('hidden');
+                document.getElementById('inTimeDisplay').value = inTimeStr; 
+                return showError("You are punching in after 10:30 AM. Please provide a reason.");
+            }
+            lateReason = reasonBox.value.trim();
+        }
+        
+        setLoading(true);
+        fetchLocationWithRetry((locationStr) => {
+            google.script.run
+                .withSuccessHandler(res => {
+                    setLoading(false);
+                    appState.inTime = res.inTime;
+                    appState.sessionID = res.sessionID;
+                    document.getElementById('inTimeDisplay').value = res.inTime;
+                    document.getElementById('punchInBtn').disabled = true;
+                    document.getElementById('punchOutBtn').disabled = false;
+                    
+                    document.getElementById('createSection').style.display = 'block';
+                    document.getElementById('logSection').style.display = 'block';
+                    
+                    if (lateReason) {
+                        document.getElementById('lateReason').classList.add('locked-field');
+                        document.getElementById('lateReason').readOnly = true;
+                    }
+                    
+                    showTerminalMessage(
+                        `Welcome, ${sessionStorage.getItem('empName')}!`, 
+                        "Let's kickstart the day. Your session has begun.", 
+                        "fas fa-coffee", "var(--primary)", true
+                    );
+                })
+                .withFailureHandler(err => {
+                    setLoading(false);
+                    showError(err.message);
+                })
+                .processPunchIn(empId, dateStr, inTimeStr, lateReason, token, locationStr);
+        });
+    }
+
+    function handlePunchOut() {
+        if(!appState.sessionID) return showError("You must Punch In first!");
+        
+        const empId = sessionStorage.getItem('empId');
+        const token = sessionStorage.getItem('authToken');
+        let outTimeStr = document.getElementById('outTimeDisplay').value;
+        
+        if (document.getElementById('outTimeDisplay').hasAttribute('readonly') || !outTimeStr) {
+            const now = new Date();
+            const hStr = String(now.getHours()).padStart(2, '0');
+            const mStr = String(now.getMinutes()).padStart(2, '0');
+            outTimeStr = `${hStr}:${mStr}`;
+        }
+        
+        const [h, m] = outTimeStr.split(':').map(Number);
+        let earlyLogoutReason = "";
+        if (h < 18 || (h === 18 && m < 30)) {
+            const reasonBox = document.getElementById('earlyLogoutReason');
+            const group = document.getElementById('earlyLogoutGroup');
+            if (group.classList.contains('hidden') || !reasonBox.value.trim()) {
+                group.classList.remove('hidden');
+                document.getElementById('outTimeDisplay').value = outTimeStr; 
+                return showError("You are logging out before 6:30 PM. Please provide a reason.");
+            }
+            earlyLogoutReason = reasonBox.value.trim();
+        }
+
+        setLoading(true);
+        fetchLocationWithRetry((locationStr) => {
+            google.script.run
+                .withSuccessHandler(res => {
+                    setLoading(false);
+                    appState.outTime = res.outTime;
+                    document.getElementById('outTimeDisplay').value = res.outTime;
+                    document.getElementById('punchOutBtn').disabled = true;
+                    
+                    document.getElementById('createSection').style.display = 'none';
+                    const recallBtn = document.querySelector('#logSection button');
+                    if(recallBtn) recallBtn.style.display = 'none';
+                    
+                    enableFinalSubmit();
+                })
+                .withFailureHandler(err => { setLoading(false); showError(err.message); })
+                .processPunchOut(empId, appState.sessionID, outTimeStr, earlyLogoutReason, token, locationStr);
+        });
+    }
+    
+    function enableFinalSubmit() {
+        const fsBtn = document.getElementById('finalSubmitBtn');
+        fsBtn.disabled = false;
+        fsBtn.classList.remove('locked-field');
+    }
+
+    function handleFinalSubmit() {
+        const empId = sessionStorage.getItem('empId');
+        const empName = sessionStorage.getItem('empName');
+        const token = sessionStorage.getItem('authToken');
+        const sessionID = appState.sessionID;
+        if(!sessionID) return showError("No active session.");
+
+        const date = document.getElementById("dateField").value;
+        const inTime = document.getElementById("inTimeDisplay").value;
+        const outTime = document.getElementById("outTimeDisplay").value;
+        
+        if(!date || !inTime || !outTime) return showError("Date, In Time, and Out Time must be filled to complete the day.");
+
+        let lateReason = "";
+        const [inH, inM] = inTime.split(':').map(Number);
+        if (inH > 10 || (inH === 10 && inM > 30)) {
+            const reasonBox = document.getElementById("lateReason");
+            const group = document.getElementById("lateReasonGroup");
+            if (group.classList.contains("hidden") || !reasonBox.value.trim()) {
+                group.classList.remove("hidden");
+                return showError("You checked Late. Please provide a reason.");
+            }
+            lateReason = reasonBox.value.trim();
+        }
+
+        let earlyLogoutReason = "";
+        const [outH, outM] = outTime.split(':').map(Number);
+        if (outH < 18 || (outH === 18 && outM < 30)) {
+            const reasonBox = document.getElementById("earlyLogoutReason");
+            const group = document.getElementById("earlyLogoutGroup");
+            if (group.classList.contains("hidden") || !reasonBox.value.trim()) {
+                group.classList.remove("hidden");
+                return showError("You are logging out Early. Please provide a reason.");
+            }
+            earlyLogoutReason = reasonBox.value.trim();
+        }
+
+        const tasks = [];
+        let validationError = false;
+        document.querySelectorAll(".log-card, .saved-card").forEach((card) => {
+            const idx = card.id.split('-')[1];
+            const baseTaskId = document.getElementById(`lBaseId-${idx}`).value;
+            const originalCreatorId = document.getElementById(`lOrigId-${idx}`).value;
+            const client = document.getElementById(`lClient-${idx}`).value;
+            const domain = document.getElementById(`lDomain-${idx}`).value;
+            const description = document.getElementById(`lDesc-${idx}`).value;
+            const remarks = document.getElementById(`lRemarks-${idx}`).value;
+            const assignedTo = document.getElementById(`lAssigned-${idx}`).value;
+            const workStation = document.getElementById(`lWorkStation-${idx}`).value;
+            const status = document.getElementById(`lStatus-${idx}`).value;
+            const hours = document.getElementById(`lHours-${idx}`).value;
+            const minutes = document.getElementById(`lMins-${idx}`).value;
+
+            if(!workStation || !status || (!hours && !minutes)) {
+                card.style.border = "2px solid red";
+                validationError = true;
+            } else {
+                card.style.border = "none";
+                tasks.push({
+                    baseTaskId, originalCreatorId, client, domain, description,
+                    workStation, status, hours: hours||0, minutes: minutes||0, remarks, assignedTo
+                });
+            }
+        });
+
+        if(validationError) return showError("Please ensure all active tasks have Work Station, Status, and Time Invested filled.");
+
+        setLoading(true);
+        google.script.run
+            .withSuccessHandler(res => {
+                setLoading(false);
+                sessionStorage.clear();
+                showTerminalMessage("Day Completed", "Good night, see you tomorrow. You can safely close this page now.");
+            })
+            .withFailureHandler(err => {
+                setLoading(false);
+                showError("Sync Error: " + err.message);
+            })
+            .completeDaySync(empId, empName, sessionID, { date, inTime, outTime, earlyLogoutReason, lateReason, tasks }, token);
+    }
+
+    function addCreateTask() {
+        const idx = internalCreateCounter++;
+        const list = document.getElementById("createTaskList");
+        const html = `
+            <div class="task-card create-card" id="create-${idx}">
+                <button type="button" class="remove-task" onclick="this.closest('.create-card').remove(); renumberCreateTasks(); checkCreateUploadBtn();"><i class="fas fa-times-circle"></i></button>
+                <h4 style="margin-top: 0; color: var(--primary);">Task <span class="create-task-num"></span></h4>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>Client Name</span>
+                            <span id="clientDbStatus-${idx}" style="font-size: 0.75rem; font-weight: 500;"></span>
+                        </label>
+                        <input type="text" id="cClient-${idx}" placeholder="Search client name or PAN..." autocomplete="off">
+                    </div>
+                    <div class="form-group"><label>Work Domain</label>
+                        <select id="cDomain-${idx}">
+                            <option value="">Select Domain</option>
+                            <option>Accounts and Bookkeeping</option><option>Bank Audit</option><option>Statutory Audit</option>
+                            <option>Internal Audit</option><option>Concurrent Audit</option><option>Direct Tax</option>
+                            <option>Indirect Tax</option><option>Litigations and Claims</option><option>Consultancy and Advisory</option>
+                            <option>TDS and TCS</option><option>ROC</option><option>Certifications</option><option>Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group"><label>Task Description</label><textarea id="cDesc-${idx}" rows="2" placeholder="give a brief details about this task"></textarea></div>
+            </div>`;
+        list.insertAdjacentHTML("beforeend", html);
+        setupAutocomplete(`cClient-${idx}`, idx);
+        renumberCreateTasks();
+        checkCreateUploadBtn();
+    }
+    
+    function renumberCreateTasks() {
+        document.querySelectorAll(".create-card").forEach((card, i) => {
+            card.querySelector('.create-task-num').textContent = i + 1;
+        });
+    }
+    
+    function checkCreateUploadBtn() {
+        const btn = document.getElementById('uploadTasksBtn');
+        if (document.querySelectorAll('.create-card').length > 0) btn.classList.remove('hidden');
+        else btn.classList.add('hidden');
+    }
+
+    function processTaskCreation() {
+        const cards = document.querySelectorAll('.create-card');
+        if (cards.length === 0) return;
+        
+        const tasks = [];
+        let valid = true;
+        
+        cards.forEach(card => {
+            const idx = card.id.split('-')[1];
+            const client = document.getElementById(`cClient-${idx}`).value.trim();
+            const domain = document.getElementById(`cDomain-${idx}`).value;
+            const desc = document.getElementById(`cDesc-${idx}`).value.trim();
+            
+            if(!client && !domain && !desc) {
+                card.remove();
+            } else if(!client || !domain || !desc) {
+                card.style.border = "2px solid red";
+                valid = false;
+            } else {
+                if (globalClientList.length > 0) {
+                    const isValidClient = globalClientList.some(c => c.finalValue.toLowerCase() === client.toLowerCase() || c.name.toLowerCase() === client.toLowerCase());
+                    if (!isValidClient) {
+                        card.style.border = "2px solid red";
+                        showError("Invalid Client Name. Please carefully select a client from the dropdown list provided.");
+                        valid = false;
+                    } else {
+                        card.style.border = "1px solid var(--border)";
+                        tasks.push({ client, domain, description: desc });
+                    }
+                } else {
+                    card.style.border = "1px solid var(--border)";
+                    tasks.push({ client, domain, description: desc });
+                }
+            }
+        });
+        
+        renumberCreateTasks();
+        if (tasks.length === 0) { checkCreateUploadBtn(); return; }
+        if(!valid) return; 
+        
+        const empId = sessionStorage.getItem('empId');
+        const token = sessionStorage.getItem('authToken');
+        if(!appState.sessionID) return showError("Please Punch In first.");
+        
+        const uiDateStr = document.getElementById('dateField').value;
+        
+        setLoading(true);
+        google.script.run
+            .withSuccessHandler(() => {
+                setLoading(false);
+                document.getElementById('createTaskList').innerHTML = '';
+                checkCreateUploadBtn();
+                showTerminalMessage("Tasks Created!", "They have been pushed to the pending tray.", "fas fa-check", "var(--success)", true);
+            })
+            .withFailureHandler(err => { setLoading(false); showError(err.message); })
+            .createPendingTasks(empId, appState.sessionID, tasks, uiDateStr, token);
+    }
+
+    window.handleAssigneeChange = function(idx) {
+        const assignedTo = document.getElementById(`lAssigned-${idx}`).value;
+        const statusDropdown = document.getElementById(`lStatus-${idx}`);
+        const currentEmpName = sessionStorage.getItem('empName');
+        
+        if (assignedTo && assignedTo !== currentEmpName) {
+            statusDropdown.value = "Assigned";
+            statusDropdown.disabled = true;
+        } else {
+            statusDropdown.disabled = false;
+            if (statusDropdown.value === "Assigned") {
+                statusDropdown.value = "Work In Progress";
+            }
+        }
+    };
+
+    window.globalPendingTasks = []; 
+
+    function openRecallModal() {
+        const empId = sessionStorage.getItem('empId');
+        const empName = sessionStorage.getItem('empName');
+        const token = sessionStorage.getItem('authToken');
+        if (!empId || !token) return showError("Session lost.");
+        
+        setLoading(true);
+        google.script.run
+            .withSuccessHandler(tasks => {
+                setLoading(false);
+                const list = document.getElementById("pendingTasksList");
+                list.innerHTML = "";
+                window.globalPendingTasks = tasks; 
+                const activeBaseIds = Array.from(document.querySelectorAll('input[name^="baseTaskId-"]')).map(i => i.value).filter(v => v !== "");
+
+                if (!tasks || tasks.length === 0) {
+                    list.innerHTML = "<p style='text-align:center; color: var(--text-secondary); margin-top:20px;'><i class='fas fa-inbox fa-2x' style='color:#cbd5e1; margin-bottom:10px;'></i><br>No pending tasks found for you.</p>";
+                } else {
+                    tasks.forEach((t) => {
+                        const isRecalled = activeBaseIds.includes(t.baseTaskId);
+                        const disabledStr = isRecalled ? "disabled" : "";
+                        const visualStyle = isRecalled ? "opacity: 0.5; background: #e2e8f0; cursor: not-allowed;" : "";
+                        const badgeStr = isRecalled ? '<span style="font-size:0.7rem; background:#cbd5e1; color:#475569; padding:2px 6px; border-radius:4px; margin-left:10px;"><i class="fas fa-check"></i> Active</span>' : '';
+
+                        list.innerHTML += `
+                            <label class="recall-task-item" style="${visualStyle}">
+                                <input type="checkbox" class="recall-cb" value="${t.baseTaskId}" ${disabledStr}>
+                                <div class="recall-task-content">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                        <div>
+                                            <strong style="color:var(--primary);">${t.client || 'Unknown'}</strong> - <span style="font-size:0.85rem;">${t.domain || ''}</span> ${badgeStr}
+                                        </div>
+                                        <span style="color: #16a34a; font-size: 0.75rem; font-weight: 600; white-space: nowrap;">${t.lastEditDateStr || ''}</span>
+                                    </div>
+                                    <span style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-top: 4px;">${t.description || ''}</span>
+                                </div>
+                            </label>
+                        `;
+                    });
+                }
+                document.getElementById("recallModal").style.display = "flex";
+            })
+            .withFailureHandler(err => { setLoading(false); showError(err.message); })
+            .getPendingTasks(empId, empName, token);
+    }
+
+    function closeRecallModal() { document.getElementById("recallModal").style.display = "none"; }
+
+    function confirmRecall() {
+        const checkboxes = document.querySelectorAll(".recall-cb:checked:not(:disabled)");
+        if (checkboxes.length === 0) return closeRecallModal();
+        
+        checkboxes.forEach(cb => {
+            const taskData = window.globalPendingTasks.find(t => t.baseTaskId === cb.value);
+            if(taskData) renderLogTaskCard(taskData, false);
+        });
+        closeRecallModal();
+    }
+
+    function renderLogTaskCard(t, isPreSaved = false) {
+        const idx = internalLogCounter++;
+        const list = document.getElementById("activeTaskList");
+        const currentEmpName = sessionStorage.getItem('empName');
+        const isAssignedAway = (t.assignedTo && t.assignedTo !== currentEmpName);
+        const fullyLocked = isPreSaved && isAssignedAway;
+        const badgeHTML = `<span class="task-badge ${isPreSaved ? 'saved-badge' : ''}"><i class="fas ${fullyLocked ? 'fa-lock' : (isPreSaved ? 'fa-check' : 'fa-history')}"></i> ${fullyLocked ? 'Locked & Assigned' : (isPreSaved ? 'Saved Today' : 'Recalled')}</span>`;
+        const cardClass = fullyLocked ? "task-card saved-card" : "task-card log-card";
+        const lockClass = fullyLocked ? "locked-field" : "";
+        const readOnlyAttr = fullyLocked ? "readonly" : "";
+        const disableAttr = fullyLocked ? "disabled" : "";
+
+        let assignedOptions = `<option value="">Select Employee (Default Self)</option>`;
+        globalEmployeeNames.forEach(n => {
+            const sel = (t.assignedTo === n) ? "selected" : "";
+            assignedOptions += `<option value="${n}" ${sel}>${n}</option>`;
+        });
+
+        const isSelected = (val, match) => val === match ? 'selected' : '';
+
+        const html = `
+            <div class="${cardClass}" id="logCard-${idx}">
+                <button type="button" class="remove-task" onclick="this.closest('.task-card').remove(); renumberLogTasks();" title="Close this task"><i class="fas fa-times-circle"></i></button>
+                <input type="hidden" name="baseTaskId-${idx}" id="lBaseId-${idx}" value="${t.baseTaskId}">
+                <input type="hidden" id="lOrigId-${idx}" value="${t.originalCreatorId || ''}">
+                <input type="hidden" id="lClient-${idx}" value="${t.client || ''}">
+                <input type="hidden" id="lDomain-${idx}" value="${t.domain || ''}">
+                <input type="hidden" id="lDesc-${idx}" value="${t.description || ''}">
+
+                <h4 style="margin-top: 0; margin-bottom: 1rem; color: var(--primary); font-size: 1.05rem;">
+                    Task <span class="log-task-num"></span> ${badgeHTML}
+                </h4>
+                <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1rem; border-left:3px solid var(--border); padding-left:10px;">
+                    <strong>${t.client}</strong> - ${t.domain}<br>${t.description}
+                </p>
+                
+                <div class="grid-2">
+                    <div class="form-group"><label>Task Remarks</label><textarea id="lRemarks-${idx}" rows="2" class="${lockClass}" ${readOnlyAttr} placeholder="Write summary about current work status update">${t.remarks || ''}</textarea></div>
+                    <div class="form-group"><label>Assigned To</label><select id="lAssigned-${idx}" class="${lockClass}" ${disableAttr} onchange="handleAssigneeChange(${idx})">${assignedOptions}</select></div>
+                </div>
+
+                <div class="grid-3">
+                    <div class="form-group"><label>Work Station</label>
+                        <select id="lWorkStation-${idx}" class="${lockClass}" ${disableAttr}>
+                            <option value="">Select Option</option>
+                            <option value="Office" ${isSelected(t.workStation, 'Office')}>Office</option>
+                            <option value="Home" ${isSelected(t.workStation, 'Home')}>Home</option>
+                            <option value="Client Office" ${isSelected(t.workStation, 'Client Office')}>Client Office</option>
+                            <option value="Office and Client Office" ${isSelected(t.workStation, 'Office and Client Office')}>Office and Client Office</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Status</label>
+                        <select id="lStatus-${idx}" class="${lockClass}" ${disableAttr}>
+                            <option value="">Select Status</option>
+                            <option value="Completed" ${isSelected(t.status, 'Completed')}>Completed</option>
+                            <option value="Work In Progress" ${isSelected(t.status, 'Work In Progress')}>Work In Progress</option>
+                            <option value="Pending for Review" ${isSelected(t.status, 'Pending for Review')}>Pending for Review</option>
+                            <option value="On Hold" ${isSelected(t.status, 'On Hold')}>On Hold</option>
+                            <option value="Assigned" ${isSelected(t.status, 'Assigned')}>Assigned</option>
+                            <option value="Sent to Client" ${isSelected(t.status, 'Sent to Client')}>Sent to Client</option>
+                            <option value="Information Pending" ${isSelected(t.status, 'Information Pending')}>Information Pending</option>
+                            <option value="Cancelled" ${isSelected(t.status, 'Cancelled')}>Cancelled</option>
+                            <option value="Abandoned" ${isSelected(t.status, 'Abandoned')}>Abandoned</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Time Invested (Today)</label>
+                        <div class="grid-2-time time-inputs">
+                            <div><input type="number" id="lHours-${idx}" min="0" max="23" placeholder="Hrs" class="${lockClass}" ${readOnlyAttr} value="${(isPreSaved||t.timeInvested) && t.timeInvested ? t.timeInvested.split('h')[0] : ''}" /></div>
+                            <div><input type="number" id="lMins-${idx}" min="0" max="59" placeholder="Min" class="${lockClass}" ${readOnlyAttr} value="${(isPreSaved||t.timeInvested) && t.timeInvested && t.timeInvested.includes(' ') ? t.timeInvested.split(' ')[1].replace('m','') : ''}" /></div>
+                        </div>
+                    </div>
+                </div>
+                ${!fullyLocked ? `<button type="button" class="btn btn-outline w-full" id="lSaveBtn-${idx}" onclick="saveTaskLog(${idx})"><i class="fas fa-save"></i> Save Update</button>` : ''}
+            </div>`;
+        list.insertAdjacentHTML("beforeend", html);
+        
+        if (isAssignedAway) {
+            const statusDropdown = document.getElementById(`lStatus-${idx}`);
+            if (statusDropdown) statusDropdown.disabled = true;
+        }
+        renumberLogTasks();
+    }
+    
+    function renumberLogTasks() {
+        document.querySelectorAll(".log-card, .saved-card").forEach((card, i) => {
+            const badge = card.querySelector('.log-task-num');
+            if(badge) badge.textContent = i + 1;
+        });
+    }
+
+    function saveTaskLog(idx) {
+        const card = document.getElementById(`logCard-${idx}`);
+        const baseTaskId = document.getElementById(`lBaseId-${idx}`).value;
+        const originalCreatorId = document.getElementById(`lOrigId-${idx}`).value;
+        const client = document.getElementById(`lClient-${idx}`).value;
+        const domain = document.getElementById(`lDomain-${idx}`).value;
+        const description = document.getElementById(`lDesc-${idx}`).value;
+        const remarks = document.getElementById(`lRemarks-${idx}`).value;
+        const assignedTo = document.getElementById(`lAssigned-${idx}`).value;
+        const workStation = document.getElementById(`lWorkStation-${idx}`).value;
+        const status = document.getElementById(`lStatus-${idx}`).value;
+        const hours = document.getElementById(`lHours-${idx}`).value;
+        const minutes = document.getElementById(`lMins-${idx}`).value;
+
+        if(!workStation || !status || (!hours && !minutes)) {
+            card.style.border = "2px solid red";
+            return showError("Please fill Work Station, Status, and Time Invested before saving.");
+        }
+        
+        const taskData = { baseTaskId, originalCreatorId, client, domain, description, workStation, status, hours: hours||0, minutes: minutes||0, remarks, assignedTo };
+        const empId = sessionStorage.getItem('empId');
+        const empName = sessionStorage.getItem('empName');
+        const token = sessionStorage.getItem('authToken');
+        const uiDateStr = document.getElementById("dateField").value;
+        
+        const btn = document.getElementById(`lSaveBtn-${idx}`);
+        btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+        google.script.run
+            .withSuccessHandler(() => {
+                card.style.border = "none";
+                const currentEmpName = sessionStorage.getItem('empName');
+                
+                if (assignedTo && assignedTo !== currentEmpName) {
+                    card.classList.add("saved-card");
+                    btn.style.display = "none";
+                    ['lWorkStation','lStatus','lHours','lMins','lRemarks','lAssigned'].forEach(id => {
+                        document.getElementById(`${id}-${idx}`).classList.add('locked-field');
+                        document.getElementById(`${id}-${idx}`).disabled = true;
+                    });
+                    const heading = card.querySelector('h4');
+                    heading.innerHTML = heading.innerHTML.replace('Recalled', 'Locked & Assigned').replace('Saved Today', 'Locked & Assigned').replace('fa-history', 'fa-lock').replace('fa-check', 'fa-lock');
+                    heading.querySelector('.task-badge').classList.add('saved-badge');
+                } else {
+                    const heading = card.querySelector('h4');
+                    heading.innerHTML = heading.innerHTML.replace('Recalled', 'Saved Today').replace('fa-history', 'fa-check');
+                    heading.querySelector('.task-badge').classList.add('saved-badge');
+                    
+                    btn.innerHTML = '<i class="fas fa-check"></i> Saved';
+                    btn.classList.replace('btn-outline', 'btn-success');
+                    setTimeout(() => {
+                        btn.innerHTML = '<i class="fas fa-save"></i> Update Task';
+                        btn.classList.replace('btn-success', 'btn-outline');
+                        btn.disabled = false;
+                    }, 2000);
+                }
+            })
+            .withFailureHandler(err => {
+                btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Save Update';
+                showError(err.message);
+            })
+            .saveSingleTask(empId, empName, appState.sessionID, taskData, uiDateStr, token);
+    }
+
+    function setLoading(isLoading, text = "Processing...") {
+        const loadingModal = document.getElementById('loadingModal');
+        const textElem = document.getElementById('loadingText');
+        if (textElem) textElem.textContent = text;
+        if (isLoading) loadingModal.style.display = "flex";
+        else loadingModal.style.display = "none";
+    }
+
+    function showError(message) {
+        if (message && message.includes("SESSION_EXPIRED")) {
+            sessionStorage.clear();
+            showTerminalMessage("Session Expired", "Your session has expired or is invalid. Please log in again.", "fas fa-clock", "#f59e0b", false);
+            setTimeout(() => { showView('login-view'); }, 3000);
+            return;
+        }
+        document.getElementById('errorModalText').textContent = message || "An unexpected error occurred.";
+        document.getElementById('errorModal').style.display = "flex";
+    }
+    function closeErrorModal() { document.getElementById('errorModal').style.display = "none"; }
+
+    window.addEventListener('load', () => {
+        initializeForm();
+        setupInactivityTracking();
+    });
+  </script>
 </body>
 </html>
