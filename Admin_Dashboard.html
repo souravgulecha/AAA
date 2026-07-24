@@ -739,7 +739,7 @@
     // --- Authentication & Setup ---
     window.addEventListener('load', () => {
         if (!SafeStorage.get('adminToken')) {
-            window.location.href = 'index.html'; 
+            window.location.href = 'Empl-Work-Tracker.html'; 
             return;
         }
         initDashboard();
@@ -747,7 +747,7 @@
 
     function safeHandleAdminLogout() {
         SafeStorage.remove('adminToken');
-        window.location.href = 'index.html'; 
+        window.location.href = 'Empl-Work-Tracker.html'; 
     }
     
     // --- Tabs and Navigation ---
