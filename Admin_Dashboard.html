@@ -2,19 +2,24 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Admin Dashboard | Arasu & Arunachalam LLP</title>
+
+  <!-- Custom Favicon added -->
+  <link rel="icon" type="image/png" href="https://souravgulecha.github.io/AAA/CA_logo.png">
+
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <script>
     // =========================================================================
     // GAS TO GITHUB BRIDGE (Polyfill)
-    // Replace the URL below with your active Google Apps Script Web App URL.
     // =========================================================================
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxDtmWUC0cW1U8IW0Bj4tMGFXdmT7EzNRaPUVdVnwVdupZVNOEeprONzHw0zPqUaTko/exec";
 
-    window.google = { script: { run: {} } };
+    // Safe Initialization to prevent overwrite errors
+    window.google = window.google || {};
+    window.google.script = window.google.script || {};
 
     function createRunner() {
         let successHandler = null;
@@ -39,7 +44,8 @@
                     fetch(GAS_WEB_APP_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify(payload)
+                        body: JSON.stringify(payload),
+                        redirect: 'follow'
                     })
                     .then(response => response.json())
                     .then(res => {
@@ -60,9 +66,18 @@
         return runner;
     }
 
-    Object.defineProperty(window.google.script, 'run', {
-        get: function() { return createRunner(); }
-    });
+    if (!window.google.script.run) {
+        Object.defineProperty(window.google.script, 'run', {
+            get: function() { return createRunner(); }
+        });
+    }
+
+    const SafeStorage = {
+        get: (key) => { try { return sessionStorage.getItem(key); } catch(e) { return null; } },
+        set: (key, val) => { try { sessionStorage.setItem(key, val); } catch(e) {} },
+        remove: (key) => { try { sessionStorage.removeItem(key); } catch(e) {} },
+        clear: () => { try { sessionStorage.clear(); } catch(e) {} }
+    };
   </script>
 
   <style>
@@ -723,8 +738,7 @@
 
     // --- Authentication & Setup ---
     window.addEventListener('load', () => {
-        // Redirection check: If they somehow got here without logging in via the admin modal
-        if (!sessionStorage.getItem('adminToken')) {
+        if (!SafeStorage.get('adminToken')) {
             window.location.href = 'index.html'; 
             return;
         }
@@ -732,7 +746,7 @@
     });
 
     function safeHandleAdminLogout() {
-        sessionStorage.removeItem('adminToken');
+        SafeStorage.remove('adminToken');
         window.location.href = 'index.html'; 
     }
     
@@ -899,7 +913,6 @@
         else div.classList.remove("show");
     }
 
-    // --- STREAMING_CHUNK:Setting up Report UI Controls... ---
     function setupTaskReportAutocomplete(inputId) {
         const input = document.getElementById(inputId);
         if (!input) return;
@@ -1102,7 +1115,6 @@
         else clientTaskDiv.style.display = "none";
     }
 
-    // --- STREAMING_CHUNK:Setting up Assignment UI Controls... ---
     function setupAssignAutocomplete(inputId) {
         const input = document.getElementById(inputId);
         if (!input || input.dataset.autocompleteSetup) return; 
@@ -1230,11 +1242,10 @@
         });
     }
 
-    // --- STREAMING_CHUNK:Fetching Live Dashboard Data... ---
     function loadLiveSummary() {
         const dStr = document.getElementById('summaryDate').value;
         const tb = document.getElementById('summaryTableBody');
-        const adminToken = sessionStorage.getItem('adminToken');
+        const adminToken = SafeStorage.get('adminToken');
 
         setButtonsState(false);
         tb.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--dash-text-muted);"><i class="fas fa-spinner fa-spin"></i> Syncing global master data...</td></tr>';
@@ -1260,7 +1271,7 @@
                 </div>`;
         }
 
-        google.script.run
+        window.google.script.run
             .withSuccessHandler(res => {
                 document.getElementById('refreshIcon').classList.remove("fa-spin");
                 setButtonsState(true);
@@ -1376,7 +1387,6 @@
             .getOptimizedMasterData(dStr, adminToken);
     }
     
-    // --- STREAMING_CHUNK:Rendering Dashboard Trees and Lists... ---
     function setButtonsState(enabled) {
         document.querySelectorAll('.dash-btn').forEach(b => {
             if(b.id !== 'mailBtn' && b.id !== 'viewBtn' && b.id !== 'exportBtn') {
@@ -1523,7 +1533,6 @@
         }
 
         let html = '';
-        // Assuming treeData is an object grouped by Client, then by Employee or Status
         for (const [clientName, tasks] of Object.entries(treeData)) {
             const clientId = clientName.replace(/[^a-zA-Z0-9]/g, '_');
             
