@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Admin Dashboard | Arasu & Arunachalam LLP</title>
 
-  <!-- Custom Favicon added -->
   <link rel="icon" type="image/png" href="https://souravgulecha.github.io/AAA/CA_logo.png">
-
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -17,7 +15,6 @@
     // =========================================================================
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxDtmWUC0cW1U8IW0Bj4tMGFXdmT7EzNRaPUVdVnwVdupZVNOEeprONzHw0zPqUaTko/exec";
 
-    // Safe Initialization to prevent overwrite errors
     window.google = window.google || {};
     window.google.script = window.google.script || {};
 
@@ -72,11 +69,12 @@
         });
     }
 
+    // Upgraded to localStorage to prevent redirects from immediately breaking the session
     const SafeStorage = {
-        get: (key) => { try { return sessionStorage.getItem(key); } catch(e) { return null; } },
-        set: (key, val) => { try { sessionStorage.setItem(key, val); } catch(e) {} },
-        remove: (key) => { try { sessionStorage.removeItem(key); } catch(e) {} },
-        clear: () => { try { sessionStorage.clear(); } catch(e) {} }
+        get: (key) => { try { return localStorage.getItem(key); } catch(e) { return null; } },
+        set: (key, val) => { try { localStorage.setItem(key, val); } catch(e) {} },
+        remove: (key) => { try { localStorage.removeItem(key); } catch(e) {} },
+        clear: () => { try { localStorage.clear(); } catch(e) {} }
     };
   </script>
 
@@ -736,7 +734,7 @@
     let isMergeMode = false;
     let selectedTasksForMerge = [];
 
-    // --- Authentication & Setup (UPDATED PATH) ---
+    // --- Authentication & Setup ---
     window.addEventListener('load', () => {
         if (!SafeStorage.get('adminToken')) {
             window.location.href = 'Empl-Work-Tracker.html'; 
