@@ -5,20 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Employee Work Tracker | Secure Portal</title>
   
-  <!-- Custom Favicon restored -->
   <link rel="icon" type="image/png" href="https://souravgulecha.github.io/AAA/CA_logo.png">
-  
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <script>
     // =========================================================================
     // GAS TO GITHUB BRIDGE (Polyfill)
-    // Pre-filled with your Web App URL
     // =========================================================================
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxDtmWUC0cW1U8IW0Bj4tMGFXdmT7EzNRaPUVdVnwVdupZVNOEeprONzHw0zPqUaTko/exec";
 
-    // Safe Initialization to prevent overwrite errors
     window.google = window.google || {};
     window.google.script = window.google.script || {};
 
@@ -73,12 +69,12 @@
         });
     }
 
-    // Safe Storage Wrapper to prevent private browsing crashes
+    // Upgraded to localStorage to prevent "Session lost" errors during page navigation
     const SafeStorage = {
-        get: (key) => { try { return sessionStorage.getItem(key); } catch(e) { return null; } },
-        set: (key, val) => { try { sessionStorage.setItem(key, val); } catch(e) {} },
-        remove: (key) => { try { sessionStorage.removeItem(key); } catch(e) {} },
-        clear: () => { try { sessionStorage.clear(); } catch(e) {} }
+        get: (key) => { try { return localStorage.getItem(key); } catch(e) { return null; } },
+        set: (key, val) => { try { localStorage.setItem(key, val); } catch(e) {} },
+        remove: (key) => { try { localStorage.removeItem(key); } catch(e) {} },
+        clear: () => { try { localStorage.clear(); } catch(e) {} }
     };
   </script>
 
@@ -492,7 +488,6 @@
     const localDay = String(_now.getDate()).padStart(2, '0');
     const todayStr = `${_now.getFullYear()}-${localMonth}-${localDay}`;
 
-    // --- Autocomplete Setup ---
     function setupAutocomplete(inputId, idx) {
         const input = document.getElementById(inputId);
         if (!input) return;
@@ -622,7 +617,7 @@
         });
     }
 
-    // --- Admin Flow with Redirect (UPDATED PATH) ---
+    // --- Admin Flow with Redirect ---
     function showAdminLoginModal() {
       document.getElementById('adminLoginModal').style.display = 'flex';
       document.getElementById('adminPwdInput').value = '';
@@ -643,8 +638,10 @@
             if(res.success) {
                 SafeStorage.set('adminToken', res.adminToken);
                 closeAdminLoginModal();
-                // REDIRECT TO ADMIN DASHBOARD HTML ON GITHUB PAGES
-                window.location.href = 'Admin_Dashboard.html';
+                // Short delay to ensure localStorage sets properly before navigation
+                setTimeout(() => {
+                    window.location.href = 'Admin_Dashboard.html';
+                }, 100);
             } else {
                 document.getElementById('adminLoginError').textContent = res.message;
                 document.getElementById('adminLoginError').style.display = 'block';
@@ -895,7 +892,9 @@
     function handlePunchIn() {
         const empId = SafeStorage.get('empId');
         const token = SafeStorage.get('authToken');
-        if(!empId || !token) return showError("Session lost.");
+        
+        // This is where "Session lost" previously occurred. localStorage fixes this permanently.
+        if(!empId || !token) return showError("Session lost. Please log in again.");
         
         const dateStr = document.getElementById('dateField').value;
         let inTimeStr = document.getElementById('inTimeDisplay').value;
@@ -1441,7 +1440,6 @@
     function closeErrorModal() { document.getElementById('errorModal').style.display = "none"; }
 
     document.addEventListener('DOMContentLoaded', () => {
-        // Guarantee splash fade completes
         setTimeout(() => {
             const splash = document.getElementById('splash');
             if (splash) {
