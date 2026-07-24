@@ -2,10 +2,100 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Employee Work Tracker | Arasu & Arunachalam LLP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Employee Work Tracker | Secure Portal</title>
+  
+  <link rel="icon" type="image/png" href="https://souravgulecha.github.io/AAA/CA_logo.png">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script>
+    // =========================================================================
+    // GAS TO GITHUB BRIDGE (Polyfill)
+    // =========================================================================
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxDtmWUC0cW1U8IW0Bj4tMGFXdmT7EzNRaPUVdVnwVdupZVNOEeprONzHw0zPqUaTko/exec";
+
+    window.google = window.google || {};
+    window.google.script = window.google.script || {};
+
+    function createRunner() {
+        let successHandler = null;
+        let failureHandler = null;
+
+        const runner = new Proxy({}, {
+            get: function(target, prop) {
+                if (prop === 'withSuccessHandler') {
+                    return function(handler) {
+                        successHandler = handler;
+                        return runner;
+                    };
+                }
+                if (prop === 'withFailureHandler') {
+                    return function(handler) {
+                        failureHandler = handler;
+                        return runner;
+                    };
+                }
+                return function(...args) {
+                    const payload = { method: prop, args: args };
+                    fetch(GAS_WEB_APP_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify(payload),
+                        redirect: 'follow'
+                    })
+                    .then(response => response.json())
+                    .then(res => {
+                        if (res.error) {
+                            if (failureHandler) failureHandler(new Error(res.error));
+                            else console.error("GAS Error:", res.error);
+                        } else {
+                            if (successHandler) successHandler(res.result);
+                        }
+                    })
+                    .catch(err => {
+                        if (failureHandler) failureHandler(err);
+                        else console.error("Network Error:", err);
+                    });
+                };
+            }
+        });
+        return runner;
+    }
+
+    if (!window.google.script.run) {
+        Object.defineProperty(window.google.script, 'run', {
+            get: function() { return createRunner(); }
+        });
+    }
+
+    // Triple-redundant storage to prevent strict browsers from losing the session
+    const MemoryStorage = {};
+    const SafeStorage = {
+        get: (key) => { 
+            let val = MemoryStorage[key];
+            if (!val) { try { val = localStorage.getItem(key); } catch(e) {} }
+            if (!val) { try { val = sessionStorage.getItem(key); } catch(e) {} }
+            return val || null;
+        },
+        set: (key, val) => { 
+            MemoryStorage[key] = val;
+            try { localStorage.setItem(key, val); } catch(e) {} 
+            try { sessionStorage.setItem(key, val); } catch(e) {}
+        },
+        remove: (key) => { 
+            delete MemoryStorage[key];
+            try { localStorage.removeItem(key); } catch(e) {} 
+            try { sessionStorage.removeItem(key); } catch(e) {}
+        },
+        clear: () => { 
+            for (let k in MemoryStorage) delete MemoryStorage[k];
+            try { localStorage.clear(); } catch(e) {} 
+            try { sessionStorage.clear(); } catch(e) {}
+        }
+    };
+  </script>
+
   <style>
     .splash-screen {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -52,7 +142,6 @@
     .form-box { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); padding: 2.5rem; position: relative; }
     .header { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1.5rem; position: relative; }
     .header h1 { font-weight: 700; color: var(--primary); margin: 0 0 0.5rem; font-size: 2.2rem; letter-spacing: -0.5px; }
-    
     .logout-btn { position: absolute; top: 0; right: 0; padding: 0.5rem 1rem; font-size: 0.85rem; }
 
     .form-section { margin: 0 0 var(--spacing) 0; padding: var(--spacing); background: #FBFCFE; border-radius: var(--radius); border: 1px solid var(--border); }
@@ -65,8 +154,7 @@
     label { display: block; font-weight: 500; margin-bottom: 0.8rem; color: var(--text-primary); font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem; }
     
     input, select, textarea {
-      width: 100%; padding: 10px 14px;
-      border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem;
+      width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem;
       box-sizing: border-box; transition: all 0.2s ease; background-color: #fff; color: var(--text-primary);
     }
     input:disabled, select:disabled, textarea:disabled, button:disabled {
@@ -139,15 +227,12 @@
         transition: all 0.2s;
     }
     .recall-task-item:hover { background: #f1f5f9; border-color: #cbd5e1; }
-    
     .recall-task-item input { margin-top: 4px; width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary); }
-    
     .recall-task-content { flex: 1; text-align: left; }
     
     .input-addon-group { display: flex; align-items: center; gap: 10px; }
     .input-addon-group input { flex: 1; margin-bottom: 0; }
     
-    /* Autocomplete Dropdown Styles */
     .autocomplete-wrapper { position: relative; width: 100%; }
     .autocomplete-wrapper.active { z-index: 100; }
     .autocomplete-list { 
@@ -197,7 +282,6 @@
     </div>
   </div>
 
-  <!-- VIEW: LOGIN -->
   <div id="login-view" class="hidden">
     <div class="login-card">
       <div class="brand-logo">Arasu & Arunachalam LLP</div>
@@ -218,14 +302,12 @@
       
       <hr style="margin: 1.5rem 0; border: 0; border-top: 1px solid var(--border);">
       
-      <!-- Modified Admin Button to Redirect -->
-      <button type="button" class="btn btn-outline w-full" onclick="window.location.href='https://souravgulecha.github.io/AAA/Admin_Dashboard.html'">
+      <button type="button" class="btn btn-outline w-full" onclick="showAdminLoginModal()">
         <i class="fas fa-user-shield"></i> Admin Dashboard
       </button>
     </div>
   </div>
 
-  <!-- VIEW: TERMINAL/MESSAGE -->
   <div id="message-view" class="hidden">
     <div class="login-card" style="text-align: center; padding: 3.5rem 2rem;">
       <i id="message-icon" class="fas fa-check-circle" style="font-size: 4rem; color: var(--success); margin-bottom: 1.5rem;"></i>
@@ -234,8 +316,21 @@
       <button type="button" id="message-close-btn" class="btn btn-primary w-full mt-4 hidden" onclick="closeTerminalMessage()">Continue</button>
     </div>
   </div>
+
+  <div id="adminLoginModal" class="modal">
+    <div class="modal-content" style="padding: 2rem;">
+      <i class="fas fa-user-shield" style="font-size: 2.5rem; color: #1e3a8a; margin-bottom: 1rem;"></i>
+      <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">Admin Access</h3>
+      <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Please authenticate to access reports.</p>
+      
+      <input type="password" id="adminPwdInput" placeholder="Enter Admin Password" required style="margin-bottom: 1rem;">
+      <div id="adminLoginError" style="color: var(--danger); font-size: 0.85rem; margin-bottom: 1rem; display: none;"></div>
+      
+      <button class="btn btn-primary w-full" id="adminAuthBtn" onclick="verifyAdminAuth()">Authorize</button>
+      <button class="btn btn-outline w-full mt-4" style="margin-top: 0.5rem;" onclick="closeAdminLoginModal()">Cancel</button>
+    </div>
+  </div>
   
-  <!-- ADMIN OVERRIDE MODAL -->
   <div id="unlockModal" class="modal">
     <div class="modal-content" style="padding: 2rem;">
       <i class="fas fa-unlock-alt" style="font-size: 2.5rem; color: #1e3a8a; margin-bottom: 1rem;"></i>
@@ -250,7 +345,6 @@
     </div>
   </div>
 
-  <!-- Error Modal -->
   <div id="errorModal" class="modal">
       <div class="modal-content">
         <i class="fas fa-exclamation-circle icon-error"></i>
@@ -259,7 +353,6 @@
       </div>
   </div>
 
-  <!-- Location Retry Modal -->
   <div id="locationModal" class="modal">
     <div class="modal-content" style="padding: 2rem;">
       <i class="fas fa-map-marker-alt" style="font-size: 3rem; color: #f59e0b; margin-bottom: 1rem;"></i>
@@ -272,7 +365,6 @@
     </div>
   </div>
 
-  <!-- Pending Tasks Recall Modal -->
   <div id="recallModal" class="modal">
     <div class="modal-content" style="max-width: 550px; text-align: left;">
       <h3 style="margin-top:0; color:var(--primary); text-align: center;"><i class="fas fa-history"></i> Recall Pending Tasks</h3>
@@ -287,7 +379,6 @@
     </div>
   </div>
 
-  <!-- Loading Overlay -->
   <div id="loadingModal" class="loading-modal">
       <div class="spinner-container">
           <div class="spinner"></div>
@@ -295,7 +386,6 @@
       </div>
   </div>
 
-  <!-- VIEW: MAIN APP (Work Tracker) -->
   <div id="app-view" class="hidden">
     <div class="app-container">
       <div class="form-box">
@@ -308,7 +398,6 @@
         </div>
 
         <form id="workForm">
-          <!-- Basic Details Section -->
           <div class="form-section">
             <h3 class="section-heading"><i class="fas fa-id-card"></i> Basic Details</h3>
             <div class="grid-2">
@@ -323,7 +412,6 @@
             </div>
           </div>
 
-          <!-- Attendance Section -->
           <div class="form-section">
             <h3 class="section-heading">
                 <i class="fas fa-clock"></i> Attendance Hub 
@@ -360,7 +448,6 @@
             </div>
           </div>
 
-          <!-- Create New Tasks Section -->
           <div id="createSection" class="form-section" style="display: none;">
             <h3 class="section-heading"><i class="fas fa-plus-square"></i> Create New Tasks</h3>
             <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: -10px; margin-bottom: 1rem;">Create tasks to push them into the firm's pending tray.</p>
@@ -373,7 +460,6 @@
             </div>
           </div>
           
-          <!-- Today's Work Log Section -->
           <div id="logSection" class="form-section" style="display: none;">
             <h3 class="section-heading"><i class="fas fa-tasks"></i> Today's Work Log</h3>
             <button type="button" class="btn btn-outline" onclick="openRecallModal()">
@@ -397,34 +483,6 @@
   </div>
 
   <script>
-    // ==========================================
-    // BACKEND COMMUNICATION CONFIGURATION
-    // ==========================================
-    // PASTE YOUR PUBLISHED GAS WEB APP URL HERE:
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyi8JgC5eK2v44n0m_oXl2mF5xM_w9h8nQ_kL5p_Q/exec"; 
-
-    // Generic Fetch Wrapper to replace google.script.run
-    async function callBackend(functionName, args = []) {
-      try {
-        const response = await fetch(GAS_WEB_APP_URL, {
-          method: 'POST',
-          // Using text/plain avoids CORS preflight OPTIONS requests to Google Servers
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ functionName: functionName, args: args })
-        });
-        
-        const result = await response.json();
-        if (result.error) {
-          throw new Error(result.error);
-        }
-        return result.data;
-      } catch (error) {
-        throw error;
-      }
-    }
-    // ==========================================
-
-
     function showView(viewId) {
       ['login-view', 'message-view', 'app-view'].forEach(id => {
         const el = document.getElementById(id);
@@ -435,9 +493,7 @@
       });
     }
 
-    const dateField = document.getElementById("dateField");
-    const employeeNameField = document.getElementById("employeeNameField");
-    
+    let dateField, employeeNameField;
     let internalCreateCounter = 0; 
     let internalLogCounter = 0;
     let inactivityTimer; 
@@ -450,7 +506,6 @@
     const localDay = String(_now.getDate()).padStart(2, '0');
     const todayStr = `${_now.getFullYear()}-${localMonth}-${localDay}`;
 
-    // --- ROCK-SOLID Autocomplete Dropdown Setup ---
     function setupAutocomplete(inputId, idx) {
         const input = document.getElementById(inputId);
         if (!input) return;
@@ -477,7 +532,6 @@
         list.className = 'autocomplete-list';
         wrapper.appendChild(list);
         
-        // Track hover state to perfectly manage dropdown clicks without setTimeout hack
         let isHoveringList = false;
         list.addEventListener('mouseenter', () => isHoveringList = true);
         list.addEventListener('mouseleave', () => isHoveringList = false);
@@ -514,13 +568,12 @@
                     div.appendChild(panSpan);
                 }
                 
-                // Pure click selection
                 div.addEventListener('click', function(e) {
                     e.stopPropagation();
                     input.value = match.finalValue;
                     list.style.display = 'none';
                     wrapper.classList.remove('active');
-                    isHoveringList = false; // Reset
+                    isHoveringList = false;
                 });
                 list.appendChild(div);
             });
@@ -560,9 +613,8 @@
             }
         });
 
-        // Instant validation on blur (prevents flickering caused by setTimeout)
         input.addEventListener('blur', function() {
-            if (isHoveringList) return; // Completely ignore blur if the user is clicking the list
+            if (isHoveringList) return;
             
             if (globalClientList.length === 0) return;
             const val = input.value.trim();
@@ -582,6 +634,44 @@
             }
         });
     }
+
+    // --- Admin Flow with Redirect ---
+    function showAdminLoginModal() {
+      document.getElementById('adminLoginModal').style.display = 'flex';
+      document.getElementById('adminPwdInput').value = '';
+      document.getElementById('adminLoginError').style.display = 'none';
+    }
+    function closeAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'none'; }
+    
+    function verifyAdminAuth() {
+      const pwd = document.getElementById('adminPwdInput').value;
+      const btn = document.getElementById('adminAuthBtn');
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+      btn.disabled = true;
+      document.getElementById('adminLoginError').style.display = 'none';
+
+      window.google.script.run
+        .withSuccessHandler(res => {
+            btn.innerHTML = 'Authorize'; btn.disabled = false;
+            if(res.success) {
+                SafeStorage.set('adminToken', res.adminToken);
+                closeAdminLoginModal();
+                // We securely pass the token through the URL in case the browser wipes Storage during navigation
+                setTimeout(() => {
+                    window.location.href = `Admin_Dashboard.html?token=${encodeURIComponent(res.adminToken)}`;
+                }, 100);
+            } else {
+                document.getElementById('adminLoginError').textContent = res.message;
+                document.getElementById('adminLoginError').style.display = 'block';
+            }
+        })
+        .withFailureHandler(err => {
+            btn.innerHTML = 'Authorize'; btn.disabled = false;
+            document.getElementById('adminLoginError').textContent = err.message;
+            document.getElementById('adminLoginError').style.display = 'block';
+        })
+        .verifyAdminAuthServer(pwd);
+    }
     
     // --- Unlock Override Flow ---
     function verifyUnlock() {
@@ -591,8 +681,8 @@
         btn.disabled = true;
         document.getElementById('unlockError').style.display = 'none';
 
-        callBackend('verifyUnlockServer', [pwd])
-            .then(res => {
+        window.google.script.run
+            .withSuccessHandler(res => {
                 btn.innerHTML = 'Unlock Fields'; btn.disabled = false;
                 if(res.success) {
                     document.getElementById('dateField').removeAttribute('readonly');
@@ -609,42 +699,43 @@
                     document.getElementById('unlockError').style.display = 'block';
                 }
             })
-            .catch(err => {
+            .withFailureHandler(err => {
                 btn.innerHTML = 'Unlock Fields'; btn.disabled = false;
-                document.getElementById('unlockError').textContent = err.message || err;
+                document.getElementById('unlockError').textContent = err.message;
                 document.getElementById('unlockError').style.display = 'block';
-            });
+            })
+            .verifyUnlockServer(pwd);
     }
 
-    // --- Auth & Session Tracking ---
-    // Security note: session ID/token is stored in sessionStorage to ensure it doesn't leak 
-    // across browser sessions, and is verified by backend functions.
     function initializeForm() {
-        setTimeout(() => {
-            const splash = document.getElementById('splash');
-            if(splash) splash.style.display = 'none';
-        }, 2100);
+        try {
+            dateField = document.getElementById("dateField");
+            employeeNameField = document.getElementById("employeeNameField");
 
-        const token = sessionStorage.getItem('authToken');
-        const empName = sessionStorage.getItem('empName');
-        const empId = sessionStorage.getItem('empId');
+            const token = SafeStorage.get('authToken');
+            const empName = SafeStorage.get('empName');
+            const empId = SafeStorage.get('empId');
 
-        if (token && empName && empId) {
-            showView('app-view');
-            employeeNameField.value = empName;
-            dateField.value = todayStr;
-            resetInactivityTimer();
-            fetchInitializationData(empId, empName, true, false);
-        } else {
+            if (token && empName && empId) {
+                showView('app-view');
+                if(employeeNameField) employeeNameField.value = empName;
+                if(dateField) dateField.value = todayStr;
+                resetInactivityTimer();
+                fetchInitializationData(empId, empName, true, false);
+            } else {
+                showView('login-view');
+            }
+        } catch (e) {
+            console.error("Initialization Error:", e);
             showView('login-view');
         }
     }
 
     function resetInactivityTimer() {
         clearTimeout(inactivityTimer);
-        if (sessionStorage.getItem('authToken')) {
+        if (SafeStorage.get('authToken')) {
             inactivityTimer = setTimeout(() => {
-                sessionStorage.removeItem('authToken');
+                SafeStorage.remove('authToken');
                 showTerminalMessage("Session Expired", "You have been logged out due to inactivity.", "fas fa-clock", "#f59e0b");
             }, 5 * 60 * 1000); 
         }
@@ -657,14 +748,12 @@
     }
 
     function handleLogout() {
-        sessionStorage.clear();
+        SafeStorage.clear();
         showTerminalMessage("Successfully Logged Out", "You can safely close this page now.");
     }
 
     function showTerminalMessage(title, subtitle, iconClass = 'fas fa-check-circle', iconColor = 'var(--success)', showClose = false) {
         showView('message-view');
-        const splash = document.getElementById('splash');
-        if(splash) splash.style.display = 'none';
         document.getElementById('message-title').textContent = title;
         document.getElementById('message-subtitle').textContent = subtitle;
         const iconEl = document.getElementById('message-icon');
@@ -734,28 +823,28 @@
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
         btn.disabled = true; errorDiv.textContent = '';
 
-        callBackend('authenticateUser', [empId, password])
-            .then(res => {
-                sessionStorage.setItem('authToken', res.token);
-                sessionStorage.setItem('empName', res.employeeName);
-                sessionStorage.setItem('empId', res.empId); 
+        window.google.script.run
+            .withSuccessHandler(res => {
+                SafeStorage.set('authToken', res.token);
+                SafeStorage.set('empName', res.employeeName);
+                SafeStorage.set('empId', res.empId); 
                 
                 btn.innerHTML = '<i class="fas fa-cog fa-spin"></i> Workspace getting ready...';
                 fetchInitializationData(res.empId, res.employeeName, false, true);
             })
-            .catch(err => {
-                errorDiv.textContent = err.message || err;
+            .withFailureHandler(err => {
+                errorDiv.textContent = err.message;
                 btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
-            });
+            })
+            .authenticateUser(empId, password);
     }
 
-    // --- Core Architecture Interactions ---
     function fetchInitializationData(empId, empName, isInitialLoad = false, isFromLogin = false) {
         if (!isInitialLoad && !isFromLogin) setLoading(true);
-        const token = sessionStorage.getItem('authToken');
+        const token = SafeStorage.get('authToken');
         
-        callBackend('getInitializationData', [empId, token])
-            .then(data => {
+        window.google.script.run
+            .withSuccessHandler(data => {
                 if (!isInitialLoad && !isFromLogin) setLoading(false);
                 
                 globalEmployeeNames = data.employeeNames;
@@ -763,12 +852,9 @@
                 appState = data.attendance;
                 
                 if (isInitialLoad || isFromLogin) {
-                    const splash = document.getElementById('splash');
-                    if(splash) splash.style.display = 'none';
-                    
                     showView('app-view');
-                    employeeNameField.value = empName;
-                    dateField.value = todayStr;
+                    if(employeeNameField) employeeNameField.value = empName;
+                    if(dateField) dateField.value = todayStr;
                     resetInactivityTimer();
                     
                     if (isFromLogin) {
@@ -814,16 +900,18 @@
                     data.todaySavedTasks.forEach(task => renderLogTaskCard(task, true));
                 }
             })
-            .catch(err => {
+            .withFailureHandler(err => {
                 if (!isInitialLoad && !isFromLogin) setLoading(false);
-                showError("Failed to initialize system: " + (err.message || err));
-            });
+                showError("Failed to initialize system: " + err.message);
+            })
+            .getInitializationData(empId, token);
     }
 
     function handlePunchIn() {
-        const empId = sessionStorage.getItem('empId');
-        const token = sessionStorage.getItem('authToken');
-        if(!empId || !token) return showError("Session lost.");
+        const empId = SafeStorage.get('empId');
+        const token = SafeStorage.get('authToken');
+        
+        if(!empId || !token) return showError("Session lost. Please log in again.");
         
         const dateStr = document.getElementById('dateField').value;
         let inTimeStr = document.getElementById('inTimeDisplay').value;
@@ -849,8 +937,8 @@
         
         setLoading(true);
         fetchLocationWithRetry((locationStr) => {
-            callBackend('processPunchIn', [empId, dateStr, inTimeStr, lateReason, token, locationStr])
-                .then(res => {
+            window.google.script.run
+                .withSuccessHandler(res => {
                     setLoading(false);
                     appState.inTime = res.inTime;
                     appState.sessionID = res.sessionID;
@@ -867,23 +955,24 @@
                     }
                     
                     showTerminalMessage(
-                        `Welcome, ${sessionStorage.getItem('empName')}!`, 
+                        `Welcome, ${SafeStorage.get('empName')}!`, 
                         "Let's kickstart the day. Your session has begun.", 
                         "fas fa-coffee", "var(--primary)", true
                     );
                 })
-                .catch(err => {
+                .withFailureHandler(err => {
                     setLoading(false);
-                    showError(err.message || err);
-                });
+                    showError(err.message);
+                })
+                .processPunchIn(empId, dateStr, inTimeStr, lateReason, token, locationStr);
         });
     }
 
     function handlePunchOut() {
         if(!appState.sessionID) return showError("You must Punch In first!");
         
-        const empId = sessionStorage.getItem('empId');
-        const token = sessionStorage.getItem('authToken');
+        const empId = SafeStorage.get('empId');
+        const token = SafeStorage.get('authToken');
         let outTimeStr = document.getElementById('outTimeDisplay').value;
         
         if (document.getElementById('outTimeDisplay').hasAttribute('readonly') || !outTimeStr) {
@@ -908,8 +997,8 @@
 
         setLoading(true);
         fetchLocationWithRetry((locationStr) => {
-            callBackend('processPunchOut', [empId, appState.sessionID, outTimeStr, earlyLogoutReason, token, locationStr])
-                .then(res => {
+            window.google.script.run
+                .withSuccessHandler(res => {
                     setLoading(false);
                     appState.outTime = res.outTime;
                     document.getElementById('outTimeDisplay').value = res.outTime;
@@ -921,7 +1010,8 @@
                     
                     enableFinalSubmit();
                 })
-                .catch(err => { setLoading(false); showError(err.message || err); });
+                .withFailureHandler(err => { setLoading(false); showError(err.message); })
+                .processPunchOut(empId, appState.sessionID, outTimeStr, earlyLogoutReason, token, locationStr);
         });
     }
     
@@ -932,9 +1022,9 @@
     }
 
     function handleFinalSubmit() {
-        const empId = sessionStorage.getItem('empId');
-        const empName = sessionStorage.getItem('empName');
-        const token = sessionStorage.getItem('authToken');
+        const empId = SafeStorage.get('empId');
+        const empName = SafeStorage.get('empName');
+        const token = SafeStorage.get('authToken');
         const sessionID = appState.sessionID;
         if(!sessionID) return showError("No active session.");
 
@@ -999,23 +1089,22 @@
         if(validationError) return showError("Please ensure all active tasks have Work Station, Status, and Time Invested filled.");
 
         setLoading(true);
-        callBackend('completeDaySync', [empId, empName, sessionID, { date, inTime, outTime, earlyLogoutReason, lateReason, tasks }, token])
-            .then(res => {
+        window.google.script.run
+            .withSuccessHandler(res => {
                 setLoading(false);
-                sessionStorage.clear();
+                SafeStorage.clear();
                 showTerminalMessage("Day Completed", "Good night, see you tomorrow. You can safely close this page now.");
             })
-            .catch(err => {
+            .withFailureHandler(err => {
                 setLoading(false);
-                showError("Sync Error: " + (err.message || err));
-            });
+                showError("Sync Error: " + err.message);
+            })
+            .completeDaySync(empId, empName, sessionID, { date, inTime, outTime, earlyLogoutReason, lateReason, tasks }, token);
     }
 
-    // --- Task Creation Flow ---
     function addCreateTask() {
         const idx = internalCreateCounter++;
         const list = document.getElementById("createTaskList");
-
         const html = `
             <div class="task-card create-card" id="create-${idx}">
                 <button type="button" class="remove-task" onclick="this.closest('.create-card').remove(); renumberCreateTasks(); checkCreateUploadBtn();"><i class="fas fa-times-circle"></i></button>
@@ -1040,11 +1129,8 @@
                 </div>
                 <div class="form-group"><label>Task Description</label><textarea id="cDesc-${idx}" rows="2" placeholder="give a brief details about this task"></textarea></div>
             </div>`;
-            
         list.insertAdjacentHTML("beforeend", html);
-        
         setupAutocomplete(`cClient-${idx}`, idx);
-        
         renumberCreateTasks();
         checkCreateUploadBtn();
     }
@@ -1101,28 +1187,28 @@
         if (tasks.length === 0) { checkCreateUploadBtn(); return; }
         if(!valid) return; 
         
-        const empId = sessionStorage.getItem('empId');
-        const token = sessionStorage.getItem('authToken');
+        const empId = SafeStorage.get('empId');
+        const token = SafeStorage.get('authToken');
         if(!appState.sessionID) return showError("Please Punch In first.");
         
         const uiDateStr = document.getElementById('dateField').value;
         
         setLoading(true);
-        callBackend('createPendingTasks', [empId, appState.sessionID, tasks, uiDateStr, token])
-            .then(() => {
+        window.google.script.run
+            .withSuccessHandler(() => {
                 setLoading(false);
                 document.getElementById('createTaskList').innerHTML = '';
                 checkCreateUploadBtn();
                 showTerminalMessage("Tasks Created!", "They have been pushed to the pending tray.", "fas fa-check", "var(--success)", true);
             })
-            .catch(err => { setLoading(false); showError(err.message || err); });
+            .withFailureHandler(err => { setLoading(false); showError(err.message); })
+            .createPendingTasks(empId, appState.sessionID, tasks, uiDateStr, token);
     }
 
-    // --- Task Recall & Upsert Flow ---
     window.handleAssigneeChange = function(idx) {
         const assignedTo = document.getElementById(`lAssigned-${idx}`).value;
         const statusDropdown = document.getElementById(`lStatus-${idx}`);
-        const currentEmpName = sessionStorage.getItem('empName');
+        const currentEmpName = SafeStorage.get('empName');
         
         if (assignedTo && assignedTo !== currentEmpName) {
             statusDropdown.value = "Assigned";
@@ -1138,20 +1224,18 @@
     window.globalPendingTasks = []; 
 
     function openRecallModal() {
-        const empId = sessionStorage.getItem('empId');
-        const empName = sessionStorage.getItem('empName');
-        const token = sessionStorage.getItem('authToken');
+        const empId = SafeStorage.get('empId');
+        const empName = SafeStorage.get('empName');
+        const token = SafeStorage.get('authToken');
         if (!empId || !token) return showError("Session lost.");
         
         setLoading(true);
-        callBackend('getPendingTasks', [empId, empName, token])
-            .then(tasks => {
+        window.google.script.run
+            .withSuccessHandler(tasks => {
                 setLoading(false);
                 const list = document.getElementById("pendingTasksList");
                 list.innerHTML = "";
-                
                 window.globalPendingTasks = tasks; 
-                
                 const activeBaseIds = Array.from(document.querySelectorAll('input[name^="baseTaskId-"]')).map(i => i.value).filter(v => v !== "");
 
                 if (!tasks || tasks.length === 0) {
@@ -1181,7 +1265,8 @@
                 }
                 document.getElementById("recallModal").style.display = "flex";
             })
-            .catch(err => { setLoading(false); showError(err.message || err); });
+            .withFailureHandler(err => { setLoading(false); showError(err.message); })
+            .getPendingTasks(empId, empName, token);
     }
 
     function closeRecallModal() { document.getElementById("recallModal").style.display = "none"; }
@@ -1200,12 +1285,9 @@
     function renderLogTaskCard(t, isPreSaved = false) {
         const idx = internalLogCounter++;
         const list = document.getElementById("activeTaskList");
-        
-        const currentEmpName = sessionStorage.getItem('empName');
+        const currentEmpName = SafeStorage.get('empName');
         const isAssignedAway = (t.assignedTo && t.assignedTo !== currentEmpName);
-        
         const fullyLocked = isPreSaved && isAssignedAway;
-        
         const badgeHTML = `<span class="task-badge ${isPreSaved ? 'saved-badge' : ''}"><i class="fas ${fullyLocked ? 'fa-lock' : (isPreSaved ? 'fa-check' : 'fa-history')}"></i> ${fullyLocked ? 'Locked & Assigned' : (isPreSaved ? 'Saved Today' : 'Recalled')}</span>`;
         const cardClass = fullyLocked ? "task-card saved-card" : "task-card log-card";
         const lockClass = fullyLocked ? "locked-field" : "";
@@ -1280,7 +1362,6 @@
             const statusDropdown = document.getElementById(`lStatus-${idx}`);
             if (statusDropdown) statusDropdown.disabled = true;
         }
-        
         renumberLogTasks();
     }
     
@@ -1300,7 +1381,6 @@
         const description = document.getElementById(`lDesc-${idx}`).value;
         const remarks = document.getElementById(`lRemarks-${idx}`).value;
         const assignedTo = document.getElementById(`lAssigned-${idx}`).value;
-        
         const workStation = document.getElementById(`lWorkStation-${idx}`).value;
         const status = document.getElementById(`lStatus-${idx}`).value;
         const hours = document.getElementById(`lHours-${idx}`).value;
@@ -1312,18 +1392,18 @@
         }
         
         const taskData = { baseTaskId, originalCreatorId, client, domain, description, workStation, status, hours: hours||0, minutes: minutes||0, remarks, assignedTo };
-        const empId = sessionStorage.getItem('empId');
-        const empName = sessionStorage.getItem('empName');
-        const token = sessionStorage.getItem('authToken');
+        const empId = SafeStorage.get('empId');
+        const empName = SafeStorage.get('empName');
+        const token = SafeStorage.get('authToken');
         const uiDateStr = document.getElementById("dateField").value;
         
         const btn = document.getElementById(`lSaveBtn-${idx}`);
         btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
-        callBackend('saveSingleTask', [empId, empName, appState.sessionID, taskData, uiDateStr, token])
-            .then(() => {
+        window.google.script.run
+            .withSuccessHandler(() => {
                 card.style.border = "none";
-                const currentEmpName = sessionStorage.getItem('empName');
+                const currentEmpName = SafeStorage.get('empName');
                 
                 if (assignedTo && assignedTo !== currentEmpName) {
                     card.classList.add("saved-card");
@@ -1349,24 +1429,24 @@
                     }, 2000);
                 }
             })
-            .catch(err => {
+            .withFailureHandler(err => {
                 btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Save Update';
-                showError(err.message || err);
-            });
+                showError(err.message);
+            })
+            .saveSingleTask(empId, empName, appState.sessionID, taskData, uiDateStr, token);
     }
 
     function setLoading(isLoading, text = "Processing...") {
         const loadingModal = document.getElementById('loadingModal');
         const textElem = document.getElementById('loadingText');
         if (textElem) textElem.textContent = text;
-        
         if (isLoading) loadingModal.style.display = "flex";
         else loadingModal.style.display = "none";
     }
 
     function showError(message) {
-        if (message && typeof message === 'string' && message.includes("SESSION_EXPIRED")) {
-            sessionStorage.clear();
+        if (message && message.includes("SESSION_EXPIRED")) {
+            SafeStorage.clear();
             showTerminalMessage("Session Expired", "Your session has expired or is invalid. Please log in again.", "fas fa-clock", "#f59e0b", false);
             setTimeout(() => { showView('login-view'); }, 3000);
             return;
@@ -1377,16 +1457,15 @@
     function closeErrorModal() { document.getElementById('errorModal').style.display = "none"; }
 
     document.addEventListener('DOMContentLoaded', () => {
-        try {
-            initializeForm();
-            setupInactivityTracking();
-        } catch (err) {
-            console.error("Initialization Error: ", err);
-            // Failsafe to guarantee the screen appears if browser blocks storage on load
-            showView('login-view');
+        setTimeout(() => {
             const splash = document.getElementById('splash');
-            if(splash) splash.style.display = 'none';
-        }
+            if (splash) {
+                splash.style.opacity = '0';
+                setTimeout(() => splash.style.display = 'none', 500);
+            }
+            initializeForm();
+        }, 1500);
+        setupInactivityTracking();
     });
   </script>
 </body>
