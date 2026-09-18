@@ -14,7 +14,7 @@
   <!-- The allow attribute is critical here to permit biometrics -->
   <iframe id="appFrame" src="https://script.google.com/macros/s/AKfycbxfK07Vnjes24hp4gpu0BwWlfk4QrbCG7S-3x65xEPgdGWBx6RSF38YRf0HFCxOFWcQ/exec" allow="publickey-credentials-get *; publickey-credentials-create *"></iframe>
 
-  <script>
+ <script>
     // Helper functions for cryptography
     function bufferToBase64(buffer) {
       const bytes = new Uint8Array(buffer);
@@ -30,10 +30,10 @@
       return bytes.buffer;
     }
 
-    // Listen for commands from the hidden Google Apps Script iframe
+    // Listen for commands from the deeply nested Google Apps Script iframe
     window.addEventListener('message', async (event) => {
       const data = event.data;
-      if (!data || !data.msgId) return; // Ignore irrelevant messages
+      if (!data || !data.msgId) return;
 
       if (data.action === 'REGISTER_FINGERPRINT') {
         try {
@@ -47,10 +47,10 @@
               timeout: 60000
             }
           });
-          // Send success back to GAS
-          event.source.postMessage({ msgId: data.msgId, status: 'SUCCESS', credentialId: bufferToBase64(credential.rawId) }, event.origin);
+          // FIX: Use '*' because the GAS sandbox origin is unpredictable
+          event.source.postMessage({ msgId: data.msgId, status: 'SUCCESS', credentialId: bufferToBase64(credential.rawId) }, '*');
         } catch (err) {
-          event.source.postMessage({ msgId: data.msgId, status: 'ERROR', error: err.message }, event.origin);
+          event.source.postMessage({ msgId: data.msgId, status: 'ERROR', error: err.message }, '*');
         }
       }
 
@@ -64,10 +64,10 @@
               timeout: 60000
             }
           });
-          // Send success back to GAS
-          event.source.postMessage({ msgId: data.msgId, status: 'SUCCESS', credentialId: bufferToBase64(assertion.rawId) }, event.origin);
+          // FIX: Use '*' because the GAS sandbox origin is unpredictable
+          event.source.postMessage({ msgId: data.msgId, status: 'SUCCESS', credentialId: bufferToBase64(assertion.rawId) }, '*');
         } catch (err) {
-          event.source.postMessage({ msgId: data.msgId, status: 'ERROR', error: err.message }, event.origin);
+          event.source.postMessage({ msgId: data.msgId, status: 'ERROR', error: err.message }, '*');
         }
       }
     });
