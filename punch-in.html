@@ -2,76 +2,26 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Biometric Punch In</title>
+  <title>Employee Portal</title>
   <style>
-    body { font-family: system-ui, sans-serif; padding: 20px; background: #f4f7f6; display: flex; justify-content: center; }
-    .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px; width: 100%; text-align: center; }
-    input { width: 90%; padding: 10px; margin: 15px 0; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; text-align: center; }
-    button { width: 100%; padding: 12px; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-bottom: 10px; }
-    .btn-punch { background: #28a745; }
-    .btn-register { background: #007bff; }
-    button:disabled { background: #ccc; }
-    .status { margin-top: 15px; font-weight: bold; min-height: 20px; font-size: 14px; word-wrap: break-word; }
-    .tabs { display: flex; margin-bottom: 20px; }
-    .tab { flex: 1; padding: 10px; cursor: pointer; border-bottom: 2px solid transparent; color: #666; }
-    .tab.active { border-bottom: 2px solid #007bff; color: #000; font-weight: bold; }
-    #registerSection { display: none; }
+    /* Makes the iframe take up the entire screen to hide the GitHub wrapper */
+    body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #f4f7f6; }
+    iframe { border: none; width: 100%; height: 100%; display: block; }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    <div class="tabs">
-      <div class="tab active" onclick="switchTab('punchIn')">Daily Punch-In</div>
-      <div class="tab" onclick="switchTab('register')">Registration</div>
-    </div>
-
-    <!-- PUNCH IN SECTION -->
-    <div id="punchInSection">
-      <h2>Clock In</h2>
-      <input type="text" id="punchEmpId" placeholder="Enter Employee ID">
-      <button class="btn-punch" id="btnPunch" onclick="handlePunchIn()">Verify & Punch In</button>
-      <div id="punchStatus" class="status"></div>
-    </div>
-
-    <!-- REGISTER SECTION -->
-    <div id="registerSection">
-      <h2>Register Device</h2>
-      <input type="text" id="regEmpId" placeholder="Enter Employee ID">
-      <button class="btn-register" id="btnReg" onclick="handleRegistration()">Register Fingerprint</button>
-      <div id="regStatus" class="status"></div>
-    </div>
-  </div>
+  <!-- The allow attribute is critical here to permit biometrics -->
+  <iframe id="appFrame" src="https://script.google.com/macros/s/AKfycbxfK07Vnjes24hp4gpu0BwWlfk4QrbCG7S-3x65xEPgdGWBx6RSF38YRf0HFCxOFWcQ/exec" allow="publickey-credentials-get *; publickey-credentials-create *"></iframe>
 
   <script>
-    // PASTE YOUR DEPLOYMENT URL HERE
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxfK07Vnjes24hp4gpu0BwWlfk4QrbCG7S-3x65xEPgdGWBx6RSF38YRf0HFCxOFWcQ/exec";
-
-    function switchTab(tab) {
-      document.getElementById('punchInSection').style.display = tab === 'punchIn' ? 'block' : 'none';
-      document.getElementById('registerSection').style.display = tab === 'register' ? 'block' : 'none';
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      event.target.classList.add('active');
-    }
-
-    // Connect to Google Apps Script API
-    async function apiCall(payload) {
-      const res = await fetch(GAS_URL, {
-        method: 'POST',
-        // Send as plain text to avoid CORS preflight failures in Google Apps Script
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      });
-      return await res.json();
-    }
-
+    // Helper functions for cryptography
     function bufferToBase64(buffer) {
       const bytes = new Uint8Array(buffer);
       let binary = '';
       for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
       return window.btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
     }
-    
     function base64ToBuffer(base64) {
       const b64 = base64.replace(/-/g, '+').replace(/_/g, '/');
       const binary = window.atob(b64);
@@ -80,76 +30,47 @@
       return bytes.buffer;
     }
 
-    async function handleRegistration() {
-      const empId = document.getElementById('regEmpId').value.trim();
-      const status = document.getElementById('regStatus');
-      if (!empId) return status.textContent = "Enter ID", status.style.color = "red";
-      
-      status.textContent = "Waiting for fingerprint...";
-      status.style.color = "blue";
-      document.getElementById('btnReg').disabled = true;
+    // Listen for commands from the hidden Google Apps Script iframe
+    window.addEventListener('message', async (event) => {
+      const data = event.data;
+      if (!data || !data.msgId) return; // Ignore irrelevant messages
 
-      try {
-        const credential = await navigator.credentials.create({
-          publicKey: {
-            challenge: crypto.getRandomValues(new Uint8Array(32)),
-            rp: { name: "Company Punch System" },
-            user: { id: crypto.getRandomValues(new Uint8Array(16)), name: empId, displayName: empId },
-            pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
-            authenticatorSelection: { userVerification: "required" },
-            timeout: 60000
-          }
-        });
-
-        const credId = bufferToBase64(credential.rawId);
-        const response = await apiCall({ action: 'register', empId: empId, credentialId: credId });
-        
-        status.style.color = response.success ? "green" : "red";
-        status.textContent = response.message;
-      } catch (err) {
-        status.style.color = "red";
-        status.textContent = `Error: ${err.message}`;
-      } finally {
-        document.getElementById('btnReg').disabled = false;
+      if (data.action === 'REGISTER_FINGERPRINT') {
+        try {
+          const credential = await navigator.credentials.create({
+            publicKey: {
+              challenge: crypto.getRandomValues(new Uint8Array(32)),
+              rp: { name: "Employee System" },
+              user: { id: crypto.getRandomValues(new Uint8Array(16)), name: data.empId, displayName: data.empId },
+              pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
+              authenticatorSelection: { userVerification: "required" },
+              timeout: 60000
+            }
+          });
+          // Send success back to GAS
+          event.source.postMessage({ msgId: data.msgId, status: 'SUCCESS', credentialId: bufferToBase64(credential.rawId) }, event.origin);
+        } catch (err) {
+          event.source.postMessage({ msgId: data.msgId, status: 'ERROR', error: err.message }, event.origin);
+        }
       }
-    }
 
-    async function handlePunchIn() {
-      const empId = document.getElementById('punchEmpId').value.trim();
-      const status = document.getElementById('punchStatus');
-      if (!empId) return status.textContent = "Enter ID", status.style.color = "red";
-
-      status.textContent = "Checking ID...";
-      status.style.color = "blue";
-      document.getElementById('btnPunch').disabled = true;
-
-      try {
-        const dbCheck = await apiCall({ action: 'getCredential', empId: empId });
-        if (!dbCheck.success) throw new Error(dbCheck.message);
-
-        status.textContent = "Waiting for fingerprint...";
-        
-        const assertion = await navigator.credentials.get({
-          publicKey: {
-            challenge: crypto.getRandomValues(new Uint8Array(32)),
-            allowCredentials: [{ id: base64ToBuffer(dbCheck.credentialId), type: 'public-key' }],
-            userVerification: "required",
-            timeout: 60000
-          }
-        });
-
-        status.textContent = "Verifying with server...";
-        const finalCheck = await apiCall({ action: 'logPunchIn', empId: empId, credentialId: bufferToBase64(assertion.rawId) });
-        
-        status.style.color = finalCheck.success ? "green" : "red";
-        status.textContent = finalCheck.message;
-      } catch (err) {
-        status.style.color = "red";
-        status.textContent = `Error: ${err.message}`;
-      } finally {
-        document.getElementById('btnPunch').disabled = false;
+      if (data.action === 'PUNCH_IN_FINGERPRINT') {
+        try {
+          const assertion = await navigator.credentials.get({
+            publicKey: {
+              challenge: crypto.getRandomValues(new Uint8Array(32)),
+              allowCredentials: [{ id: base64ToBuffer(data.credentialId), type: 'public-key' }],
+              userVerification: "required",
+              timeout: 60000
+            }
+          });
+          // Send success back to GAS
+          event.source.postMessage({ msgId: data.msgId, status: 'SUCCESS', credentialId: bufferToBase64(assertion.rawId) }, event.origin);
+        } catch (err) {
+          event.source.postMessage({ msgId: data.msgId, status: 'ERROR', error: err.message }, event.origin);
+        }
       }
-    }
+    });
   </script>
 </body>
 </html>
